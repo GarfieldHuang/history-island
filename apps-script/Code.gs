@@ -5,7 +5,7 @@
 
 const SHEET_NAME = '排行榜';
 const MAX_ISLANDS = 10;   // 島數上限（防亂填）
-const MAX_STARS = 62;     // 星星上限（題目數）
+const MAX_STARS = 200;    // 星星上限（防亂填；目前題目 72 題）
 const TOP_N = 50;
 
 // 綁定在試算表上（擴充功能 → Apps Script）就用那份；
