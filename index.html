@@ -1,0 +1,1239 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="國中歷史（三）第 3–4 章宋元明清闖關複習遊戲">
+<title>宋元明清闖關島</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: full-bleed 3D clay city; glass HUD in corners; one floating card (left on desktop, bottom sheet on phone); big step button bottom-center */
+:root{
+  --bg1:#fffdf9; --bg2:#edddcf;
+  --card:rgba(255,250,245,.94); --card-solid:#fffaf5; --ink:#211d1d; --muted:#6e625b; --line:#ecdccd;
+  --coral:#db6a41; --coral-ink:#fff; --yellow:#fcea8b; --cream:#fff8f4; --stone:#c5b5a7;
+  --ok:#3f8f5a; --ok-bg:#e4f3e6; --bad:#b9573c; --bad-bg:#fbe7df; --flag:#e6b422;
+  --shadow:0 1px 2px #4a2a1412,0 8px 24px #4a2a141c,0 24px 60px #4a2a1414;
+  --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Menlo,monospace;
+  --num:Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --card:rgba(40,34,32,.93); --card-solid:#2a2422; --ink:#f6ece4; --muted:#c7b6aa; --line:#4a3d37;
+  --cream:#3a302c; --ok-bg:#24402c; --bad-bg:#4a2b22; --yellow:#7a6a2a; color-scheme:dark }}
+:root[data-theme="dark"]{ --card:rgba(40,34,32,.93); --card-solid:#2a2422; --ink:#f6ece4; --muted:#c7b6aa; --line:#4a3d37;
+  --cream:#3a302c; --ok-bg:#24402c; --bad-bg:#4a2b22; --yellow:#7a6a2a; color-scheme:dark }
+html,body{height:100%}
+body{margin:0;overflow:hidden;font-family:var(--font);color:var(--ink);background:radial-gradient(120% 90% at 50% 30%,var(--bg1),var(--bg2));background-color:var(--bg2)}
+#scene{position:fixed;inset:0}
+#scene canvas{display:block;touch-action:none}
+.labels{position:absolute;inset:0;pointer-events:none}
+button{font-family:inherit}
+.btn{min-height:44px;border-radius:9px;border:1.5px solid var(--line);background:var(--card-solid);color:var(--ink);padding:0 16px;font-size:15px;font-weight:700;cursor:pointer}
+.btn:hover{background:#fcea8b;color:#211d1d}
+.btn:active{background:#211d1d;color:#fff}
+.btn:focus-visible,.opt:focus-visible,.ib:focus-visible,.go:focus-visible,.look:focus-visible,input:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+.btn.primary{background:var(--coral);border-color:var(--coral);color:#fff}
+.btn.primary:hover{background:#fcea8b;color:#211d1d;border-color:#e3c95a}
+.glass{background:var(--card);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:var(--shadow)}
+.hidden{display:none!important}
+.eyebrow{font:700 10px/1.4 var(--mono);letter-spacing:2px;color:var(--coral);text-transform:uppercase}
+/* title card */
+#titleCard{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));border-radius:18px;padding:12px 16px;max-width:300px}
+#titleCard h1{margin:2px 0 4px;font-size:19px;letter-spacing:.5px}
+#titleCard .where{font-size:14px;font-weight:700}
+#titleCard .bar{height:6px;border-radius:9px;background:var(--line);margin-top:8px;overflow:hidden}
+#titleCard .bar i{display:block;height:100%;background:var(--coral);width:0;transition:width .4s}
+/* top right */
+#tr{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;gap:8px;align-items:center}
+.chip{border-radius:999px;background:var(--card-solid);box-shadow:0 2px 8px #4a2a1414;padding:0 14px;height:44px;display:flex;align-items:center;font-weight:800;font-size:16px;font-variant-numeric:tabular-nums}
+.ib{width:44px;height:44px;border-radius:999px;border:none;background:var(--card-solid);color:var(--ink);box-shadow:0 2px 8px #4a2a1414;font-size:18px;cursor:pointer}
+.ib:hover{background:#fcea8b;color:#211d1d}
+/* go button */
+#goWrap{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:5}
+.go{min-height:64px;min-width:240px;border-radius:999px;border:none;background:var(--coral);color:#fff;display:flex;align-items:center;gap:12px;padding:0 26px 0 20px;box-shadow:0 6px 0 #a34e34,0 14px 30px #4a2a1440;cursor:pointer;text-align:left}
+.go:hover{filter:brightness(1.06)}
+.go:active{transform:translateY(4px);box-shadow:0 2px 0 #a34e34,0 8px 18px #4a2a1440}
+.go:disabled{opacity:.55;cursor:default}
+.go .gi{font-size:26px}
+.go b{display:block;font-size:20px;letter-spacing:1px}
+.go small{display:block;font-size:12.5px;opacity:.92;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.cardOpen #goWrap{opacity:0;pointer-events:none}
+/* card */
+#card{position:fixed;left:max(16px,env(safe-area-inset-left,0px));top:calc(132px + env(safe-area-inset-top,0px));width:380px;max-height:calc(100% - 160px);overflow:auto;border-radius:22px;padding:20px 22px 22px;z-index:6;transform:translateX(-420px);opacity:0;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .25s}
+#card.open{transform:none;opacity:1}
+#card h2{margin:6px 0 10px;font-size:22px;line-height:1.35;text-wrap:balance}
+#card .lead{font-size:16px;line-height:1.75;margin:0 0 12px}
+.facts{display:grid;gap:8px;margin:0 0 12px}
+.fact{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:14.5px;line-height:1.5}
+.fact em{font-family:var(--num);font-style:italic;font-weight:700;font-size:19px;color:var(--coral)}
+.ref{font-size:12.5px;color:var(--muted);margin-bottom:14px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.actions .btn{flex:1}
+.qtext{font-size:22px!important}
+.opts{display:grid;gap:10px;margin:8px 0 10px}
+.opt{min-height:56px;border-radius:12px;border:2px solid var(--line);background:var(--card-solid);color:var(--ink);font-size:17px;font-weight:600;text-align:left;display:flex;gap:12px;align-items:center;padding:8px 14px;cursor:pointer;transition:background .15s,opacity .2s}
+.opt:hover:not(:disabled){background:#fcea8b;color:#211d1d}
+.opt kbd{font:700 12px var(--mono);border:1.5px solid currentColor;border-radius:6px;padding:2px 6px;opacity:.6}
+.opt.ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ink)}
+.opt.ok kbd{opacity:1;color:var(--ok)}
+.opt.bad{background:var(--bad-bg);border-color:var(--bad);opacity:.6;animation:shake .35s}
+.opt:disabled{cursor:default}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+.fb{font-size:15px;line-height:1.65;min-height:4px}
+.fb .msg{border-radius:12px;padding:10px 12px;margin-top:4px}
+.fb .msg.ok{background:var(--ok-bg)}
+.fb .msg.hint{background:var(--cream);border:1px dashed var(--stone)}
+.fb .msg.bad{background:var(--bad-bg)}
+.flip{animation:flip .6s cubic-bezier(.2,.8,.2,1)}
+@keyframes flip{0%{transform:perspective(800px) rotateY(90deg)}100%{transform:none}}
+.ring{display:flex;gap:16px;align-items:center;margin:8px 0 14px}
+.badge{font-size:44px;line-height:1}
+.statrow{display:flex;gap:10px;margin:10px 0}
+.stat{flex:1;background:var(--cream);border-radius:12px;padding:10px;text-align:center;border:1px solid var(--line)}
+.stat b{display:block;font-family:var(--num);font-style:italic;font-size:28px;color:var(--coral)}
+.stat span{font-size:12px;color:var(--muted)}
+.rlist{margin:6px 0 0;padding-left:18px;font-size:14px;line-height:1.7}
+/* overlays */
+.overlay{position:fixed;inset:0;display:grid;place-items:center;background:rgba(40,25,18,.28);z-index:20;padding:16px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px))}
+.panel{background:var(--card-solid);border-radius:22px;box-shadow:var(--shadow);padding:24px;width:min(520px,100%);max-height:calc(100% - 32px);overflow:auto}
+.panel h2{margin:4px 0 6px;font-size:26px}
+.panel p{line-height:1.7}
+.looks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 14px}
+.look{border:2px solid var(--line);background:var(--cream);color:var(--ink);border-radius:14px;padding:10px 4px;cursor:pointer;font-size:13px;font-weight:700;min-height:72px}
+.look span{display:block;font-size:28px}
+.look[aria-pressed="true"]{border-color:var(--coral);background:#fcea8b;color:#211d1d}
+label.f{display:block;font-weight:700;font-size:14px;margin:6px 0}
+input[type=text]{width:100%;box-sizing:border-box;height:48px;border-radius:10px;border:1.5px solid var(--line);background:var(--cream);color:var(--ink);font:600 17px var(--font);padding:0 12px}
+.steps{display:grid;gap:10px;margin:12px 0 16px}
+.steps div{display:flex;gap:12px;align-items:center;background:var(--cream);border-radius:12px;padding:10px 12px;font-size:15.5px;line-height:1.5}
+.steps b{font-family:var(--num);font-style:italic;font-size:26px;color:var(--coral);min-width:22px}
+.prog{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;font-size:14px;margin:10px 0}
+.prog .pb{height:8px;border-radius:9px;background:var(--line);overflow:hidden}
+.prog .pb i{display:block;height:100%;background:var(--coral)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.small{font-size:12.5px;color:var(--muted);line-height:1.6}
+/* certificate */
+#cert .panel{border:6px double #c99a52;text-align:center;width:min(560px,100%)}
+#cert h2{font-size:30px;letter-spacing:4px}
+#cert .who{font-size:28px;font-weight:800;color:var(--coral);margin:8px 0}
+#cert table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0;text-align:left}
+#cert td{border-bottom:1px solid var(--line);padding:5px 4px;font-variant-numeric:tabular-nums}
+.lb{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0}
+.lb th{font:700 11px var(--mono);letter-spacing:1px;color:var(--muted);text-align:left;padding:4px;border-bottom:2px solid var(--line)}
+.lb td{padding:8px 4px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.lb td.rk{font-family:var(--num);font-style:italic;font-weight:700;font-size:18px;color:var(--coral);width:36px}
+.lb tr.me td{background:#fff3b8;color:#211d1d}
+.lb .num{text-align:right}
+/* labels */
+.ilabel{border-radius:999px;background:rgba(255,248,244,.92);color:#211d1d;font:700 12.5px var(--font);padding:4px 11px;box-shadow:0 2px 8px #4a2a1420;white-space:nowrap;transition:opacity .3s}
+.ilabel.cur{background:#211d1d;color:#fff}
+.ilabel.dim{opacity:.55}
+.ilabel.lock{background:#e9e1d9;color:#7a6d64}
+.tlabel{font:800 12px var(--font);color:#211d1d;background:rgba(255,255,255,.9);border-radius:999px;padding:1px 7px;box-shadow:0 1px 4px #4a2a1420;white-space:nowrap}
+.tlabel.done{background:#fff3b8}
+.tlabel.rev{background:#ffd75a}
+.tlabel.next{background:var(--coral);color:#fff}
+.gsign{font:800 12px var(--font);background:#db6a41;color:#fff;border-radius:8px;padding:3px 9px;box-shadow:0 2px 6px #4a2a1430;white-space:nowrap}
+.gsign.okd{background:#3f8f5a}
+#toast{position:fixed;left:50%;top:calc(90px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:#211d1d;color:#fff;border-radius:999px;padding:10px 20px;font-weight:700;z-index:30;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1}
+#loading{position:fixed;inset:0;display:grid;place-content:center;text-align:center;z-index:40;background:radial-gradient(120% 90% at 50% 30%,var(--bg1),var(--bg2));color:#211d1d}
+#loading .big{font-size:34px;font-weight:900;letter-spacing:3px}
+#loading .sub{margin-top:10px;font-size:16px;color:#6e625b}
+#loading .err{margin-top:14px;color:#b9573c;font-weight:700;max-width:420px}
+body.big #card h2{font-size:26px}
+body.big #card .lead,body.big .opt{font-size:20px}
+body.big .qtext{font-size:26px!important}
+@media (max-width:800px){
+  #titleCard{max-width:calc(100% - 230px);padding:10px 12px}
+  #titleCard h1{font-size:15px}
+  #titleCard .where{font-size:12.5px}
+  #tr{gap:6px}
+  .chip{height:40px;padding:0 10px;font-size:14px}
+  .ib{width:40px;height:40px;font-size:16px}
+  #card{left:0;right:0;bottom:0;top:auto;width:auto;max-height:none;height:46%;border-radius:22px 22px 0 0;transform:translateY(105%);padding:14px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+  #card.open{transform:none}
+  #card::before{content:"";display:block;width:44px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 8px}
+  #card.tall{height:calc(100% - 70px)}
+  .qtext{font-size:19px!important}
+  .opt{font-size:16px}
+  .go{min-width:220px}
+}
+@media (prefers-reduced-motion:reduce){ #card,.opt,.flip,#toast{transition:none!important;animation:none!important} }
+@media print{ body>*:not(#cert){display:none!important} #cert{position:static;background:none;display:block!important} #cert .row{display:none} }
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+
+</head>
+<body>
+<div id="scene"></div>
+<div id="loading"><div class="big">宋元明清闖關島</div><div class="sub" id="loadMsg">正在搭建闖關島…</div><div class="err" id="loadErr"></div></div>
+
+<header id="titleCard" class="glass hidden" aria-live="polite">
+  <div class="eyebrow" id="tcEyebrow">國中歷史（三）</div>
+  <h1 id="tcTitle">宋元明清闖關島</h1>
+  <div class="where" id="tcWhere">第 1 島</div>
+  <div class="bar"><i id="tcBar"></i></div>
+</header>
+<div id="tr" class="hidden">
+  <span class="chip" id="starChip" aria-label="星星數">⭐ 0</span>
+  <button class="ib" id="btnBoard" aria-label="排行榜" title="排行榜">🏆</button>
+  <button class="ib" id="btnPano" aria-label="全景" title="全景">⌂</button>
+  <button class="ib" id="btnHelp" aria-label="玩法說明" title="玩法說明">?</button>
+  <button class="ib" id="btnMute" aria-label="靜音切換" title="聲音">🔊</button>
+  <button class="ib" id="btnPanel" aria-label="家長面板" title="家長面板">⚙</button>
+</div>
+<div id="goWrap" class="hidden"><button class="go" id="go"><span class="gi">▶</span><span><b id="goT">前進</b><small id="goS">下一格</small></span></button></div>
+<aside id="card" class="glass" aria-live="polite"></aside>
+<div id="toast"></div>
+
+<div id="start" class="overlay hidden">
+  <div class="panel">
+    <div class="eyebrow">國中歷史（三）第 3–4 章</div>
+    <h2>宋元明清闖關島</h2>
+    <p class="small" id="srcLine"></p>
+    <label class="f">選一個角色</label>
+    <div class="looks" id="looks"></div>
+    <label class="f" for="nameIn">你的名字</label>
+    <input type="text" id="nameIn" maxlength="10" value="" placeholder="例如：小明（會顯示在排行榜上）">
+    <p class="small" style="margin:6px 0 0">排行榜只會顯示這個名字，用暱稱就好。</p>
+    <div class="row" style="margin-top:16px">
+      <button class="btn primary" id="btnStart" style="flex:1">開始冒險</button>
+      <button class="btn hidden" id="btnContinue" style="flex:1">繼續冒險</button>
+    </div>
+    <div class="row"><button class="btn" id="btnBoard2" style="flex:1">🏆 看排行榜</button></div>
+  </div>
+</div>
+<div id="help" class="overlay hidden">
+  <div class="panel">
+    <div class="eyebrow">玩法</div>
+    <h2>三個步驟</h2>
+    <div class="steps">
+      <div><b>1</b><span>按「▶ 前進」（或空白鍵），一次走到下一格。</span></div>
+      <div><b>2</b><span>停下來讀卡片、回答問題；答對就在島上蓋出一個模型。答錯兩次會插上黃旗，過關前要回來再挑戰。</span></div>
+      <div><b>3</b><span>一座島的格子全部蓋好，再通過關卡門（3 題答對 2 題），橋就會放下，前往下一座島。</span></div>
+    </div>
+    <p class="small">滑鼠拖曳可轉動鏡頭、滾輪縮放、右鍵拖曳可平移。數字鍵 1–4 可以直接選答案。</p>
+    <div class="row"><button class="btn primary" id="btnHelpOk" style="flex:1">知道了</button></div>
+  </div>
+</div>
+<div id="panel" class="overlay hidden"><div class="panel" id="panelBody"></div></div>
+<div id="confirm" class="overlay hidden"><div class="panel" id="confirmBody"></div></div>
+<div id="cert" class="overlay hidden"><div class="panel" id="certBody"></div></div>
+<div id="board" class="overlay hidden"><div class="panel" id="boardBody"></div></div>
+
+<script>
+// Fallback watchdog (runs even if the module never loads)
+setTimeout(function(){ if(!window.__islandReady && !window.__islandError){ var e=document.getElementById('loadErr'); if(e) e.textContent='載入失敗，請檢查網路或改用支援 WebGL 的瀏覽器'; } },10000);
+</script>
+
+<script type="module">
+// ====================================================================
+// DATA — 所有內容都在這裡改。題目出自《國中歷史（三）》講義 p.31–60
+// ====================================================================
+const DATA = {
+  mode: 'hop',
+  meta: {
+    title: '宋元明清闖關島',
+    subject: '國中歷史（三）第 3–4 章',
+    audience: '國中二年級',
+    source: '國中歷史（三）講義 p.31–60：重點分析、學習即時通、會考學力診斷、段考複習評量',
+    advance: 'step',   // 不擲骰：一次走一格
+    leaderboard: ''    // Google Apps Script 網頁應用程式網址（…/exec）；空字串＝不顯示排行榜
+  },
+  islands: [
+    { id:'i1', name:'遼與北宋', at:[0,0], color:'#db6a41', ground:'brick', tree:'pine', time:400, landmark:'fort', gate:{pass:2,of:3}, tiles:[
+      { id:'1-1', type:'lesson', model:'banner', ref:'p.31', title:'契丹建立遼國',
+        text:'唐朝滅亡後，契丹族趁亂崛起，南下取得軍事重地燕雲十六州，以「大遼」為國號，成為當時北方的強權。東北的女真、西北的西夏也向遼稱臣。',
+        points:['947 年契丹族建立遼','燕雲十六州：今河北、山西一帶','女真、西夏向遼稱臣'],
+        q:{ q:'在唐朝滅亡後趁亂崛起、南下取得燕雲十六州，並以「大遼」為國號的是哪一族？', options:['女真族','契丹族','蒙古族','漢族'], answer:1,
+            hint:'遼國是哪一族建立的？再看一次卡片第一句。', why:'講義 p.31：遼由契丹族建立，取得燕雲十六州後以「大遼」為國號。' } },
+      { id:'1-2', type:'lesson', model:'palace', ref:'p.31', title:'北宋建立',
+        text:'五代末期，禁軍最高統帥趙匡胤在陳橋兵變後建立宋朝，是為宋太祖，定都汴京（今河南開封），史稱「北宋」。',
+        points:['960 年北宋建立','宋太祖＝趙匡胤','首都汴京＝今河南開封'],
+        q:{ q:'北宋的首都汴京，是今天的哪一座城市？', options:['浙江杭州','北京','河南開封','江蘇南京'], answer:2,
+            hint:'北宋的首都在黃河流域的河南；南宋才南遷到浙江。', why:'講義 p.31：趙匡胤定都汴京（今河南開封）。' } },
+      { id:'1-3', type:'lesson', model:'book', ref:'p.31', title:'文人政治',
+        text:'北宋偏重文人政治，縮減武將權力，由文人指揮軍隊，基本國策是「重文輕武、強幹弱枝」，卻造成自身軍事實力貧弱，難以應付強敵環伺。',
+        points:['國策：重文輕武、強幹弱枝','由文人指揮軍隊','結果：軍事實力貧弱'],
+        q:{ q:'北宋偏重文人政治、由文人指揮軍隊，帶來了什麼結果？', options:['軍事實力貧弱，難以應付強敵','武將權力大增，叛亂不斷','疆域擴張到中亞','開始廢除科舉考試'], answer:0,
+            hint:'「重文輕武」——輕的是哪一邊？', why:'講義 p.31：文人政治造成北宋自身軍事實力貧弱，難以應付強敵環伺。' } },
+      { id:'1-4', type:'surprise', tag:'延伸學習', ref:'p.31', title:'燕雲十六州有多重要？',
+        text:'燕雲十六州位於今河北、山西一帶，是當時的軍事重鎮，更是農業民族抵禦草原民族南侵的屏障。遼取得這裡之後，北宋北方就少了一道天然防線。' },
+      { id:'1-5', type:'lesson', model:'coin', ref:'p.31、33', title:'澶淵之盟',
+        text:'宋真宗時遼軍南侵，真宗親征，最後雙方簽訂「澶淵之盟」：宋每年給遼銀、絹，稱為「歲幣」，並劃定疆界，雙方君主以兄弟相稱。此後宋遼維持了一百多年的和平。',
+        points:['1005 年簽訂','宋每年給遼「歲幣」（銀、絹）','中國首度與周邊國家建立對等關係'],
+        q:{ q:'11 世紀初，北宋與哪一個國家簽訂「澶淵之盟」，此後兩國維持了一百多年的和平？', options:['西夏','金國','蒙古','遼國'], answer:3,
+            hint:'澶淵之盟是 1005 年的事，那時金和蒙古都還沒建國。', why:'講義 p.31：宋真宗時遼軍南侵，雙方簽訂澶淵之盟，宋遼維持百多年和平。' } },
+      { id:'1-6', type:'quiz', model:'tower', ref:'p.39、57', title:'城樓上的皇帝',
+        q:{ q:'《宋代大事》記載：「皇帝登上前線城樓督戰，士兵大呼萬歲……最後與敵方簽訂和平協議，雙方以兄弟相稱。」這位親征的皇帝是誰？', options:['宋太祖','宋真宗','宋徽宗','宋高宗'], answer:1,
+            hint:'以兄弟相稱的和約是哪一個？當時是誰在位？', why:'這段描述的是澶淵之盟，親征的是宋真宗（講義 p.31）。' } }
+    ]},
+    { id:'i2', name:'金與南宋', at:[1,0], color:'#6f7fb5', ground:'dots', tree:'willow', time:470, landmark:'palace', gate:{pass:2,of:3}, tiles:[
+      { id:'2-1', type:'lesson', model:'fort', ref:'p.32', title:'金國崛起',
+        text:'北宋末年，位於東北的女真族建國，國號「金」。金建國後聲勢銳不可擋，北宋便與金聯盟，共同攻打遼國。',
+        points:['1115 年女真族建立金','北宋與金聯盟攻遼'],
+        q:{ q:'北宋末年，位於東北、建立「金」國的是哪一族？', options:['女真族','契丹族','蒙古族','鮮卑族'], answer:0,
+            hint:'契丹建的是遼；金是另一個東北民族建的。', why:'講義 p.32：北宋末年，位於東北的女真族建國，國號金。' } },
+      { id:'2-2', type:'lesson', model:'scroll', ref:'p.32', title:'靖康之禍',
+        text:'金在滅遼之後，又在北宋靖康 2 年（1127 年）揮兵南下，攻陷汴京，擄走宋朝皇帝，史稱「靖康之禍」，北宋滅亡。',
+        points:['1127 年','金攻陷汴京、擄走皇帝','北宋滅亡'],
+        q:{ q:'宋朝可以分為北宋與南宋，導致首都與疆域改變的是哪一個事件？', options:['澶淵之盟','蒙古西征','遼取得燕雲十六州','靖康之禍'], answer:3,
+            hint:'哪一件事讓北宋滅亡、宋室南遷？', why:'講義 p.32：靖康之禍後北宋滅亡，宋室南遷，史稱南宋。' } },
+      { id:'2-3', type:'lesson', model:'palace', ref:'p.32', title:'南宋建立',
+        text:'北宋滅亡後，宋室南遷，定都臨安（今浙江杭州），史稱「南宋」。之後宋、金兩國時戰時和，形成長期對峙的局面。',
+        points:['首都臨安＝今浙江杭州','宋金長期對峙'],
+        q:{ q:'南宋的首都臨安，是今天的哪裡？', options:['河南開封','浙江杭州','北京','江西景德鎮'], answer:1,
+            hint:'宋室是「南遷」的，往南找。', why:'講義 p.32：宋室南遷，定都臨安（今浙江杭州）。' } },
+      { id:'2-4', type:'surprise', tag:'延伸學習', ref:'p.33', title:'岳飛的故事',
+        text:'岳飛是南宋抗金名將，主張北伐、打敗金兵並救回徽、欽二帝，這卻犯了宋高宗的大忌。秦檜在高宗授意下，以「擁兵逗留」的罪名將岳飛處死。' },
+      { id:'2-5', type:'quiz', model:'scroll', ref:'p.38', title:'《滿江紅》之一',
+        q:{ q:'岳飛《滿江紅》：「靖康恥，猶未雪。臣子恨，何時滅！」其中的「靖康恥」指的是什麼？', options:['宋真宗支付歲幣給遼國','蒙古先後發動三次西征','北宋君臣遭女真族所俘','胡人建國導致晉室南遷'], answer:2,
+            hint:'「靖康」是北宋的年號，那一年發生了什麼？', why:'靖康之禍時，金（女真族）攻陷汴京、擄走宋朝皇帝（講義 p.32）。' } },
+      { id:'2-6', type:'quiz', model:'banner', ref:'p.37、57', title:'《滿江紅》之二',
+        q:{ q:'《滿江紅》：「壯志飢餐胡虜肉，笑談渴飲匈奴血。」依時空背景，「胡虜」「匈奴」指的是哪一族？', options:['契丹族','鮮卑族','蒙古族','女真族'], answer:3,
+            hint:'岳飛一生在跟誰打仗？', why:'岳飛是南宋抗金名將，金由女真族建立（講義 p.37 解答）。' } }
+    ]},
+    { id:'i3', name:'蒙古帝國與元', at:[2,0], color:'#e0a43a', ground:'stripes', tree:'round', time:560, landmark:'yurt', gate:{pass:2,of:3}, tiles:[
+      { id:'3-1', type:'lesson', model:'yurt', ref:'p.32', title:'成吉思汗',
+        text:'南宋中期（13 世紀初），鐵木真建立蒙古國，被推戴為「成吉思汗」（意思是偉大的君主）。他和繼位者發動三次西征，建立四大汗國。',
+        points:['1206 年建蒙古國','三次西征','建立四大汗國'],
+        q:{ q:'13 世紀初建立蒙古國、被推戴為「成吉思汗」的是誰？', options:['忽必烈','趙匡胤','鐵木真','朱元璋'], answer:2,
+            hint:'忽必烈是他的孫子。', why:'講義 p.32：鐵木真建蒙古國，被推戴為「成吉思汗」。' } },
+      { id:'3-2', type:'lesson', model:'banner', ref:'p.32', title:'橫跨歐亞的大帝國',
+        text:'蒙古在西征期間滅了西夏（鐵木真在征討西夏時駕崩），又與南宋合作滅金，取得金國在黃河流域的統治範圍，成為橫跨歐、亞的大帝國。',
+        points:['滅西夏','與南宋合作滅金','橫跨歐亞'],
+        q:{ q:'蒙古與哪一個政權合作，把金國滅亡？', options:['南宋','遼國','西夏','北宋'], answer:0,
+            hint:'金滅亡時，北宋早已不在了。', why:'講義 p.32：蒙古與南宋合作滅金，取得黃河流域。' } },
+      { id:'3-3', type:'lesson', model:'palace', ref:'p.32', title:'忽必烈建元朝',
+        text:'鐵木真之孫忽必烈即位後建立元朝，定都大都（今北京），為元世祖；後來南下滅南宋，完成中國的統一。蒙古人成為第一個統治整個中國的草原民族。',
+        points:['1271 年定國號為元','首都大都＝今北京','1279 年滅南宋'],
+        q:{ q:'建立元朝、定都大都（今北京）的元世祖是誰？', options:['鐵木真','忽必烈','宋高宗','耶律阿保機'], answer:1,
+            hint:'他是成吉思汗的孫子。', why:'講義 p.32：忽必烈即位後建立元朝，定都大都，為元世祖。' } },
+      { id:'3-4', type:'lesson', model:'pyramid', ref:'p.33', title:'元代的種族政策',
+        text:'蒙古人為了維持本族地位，實施差別待遇的種族政策：蒙古人地位最高；色目人（西域以西的民族）多負責財政；漢人（原受金統治的漢人、契丹人、女真人）受到限制；南人（原受南宋統治的漢人及南方各族）地位最低。',
+        points:['蒙古人最高，色目人多管財政','漢人：原受金統治','南人：原受南宋統治，地位最低'],
+        q:{ q:'來自西域的飛雷神，在元代朝廷中擔任財政稅務官員，他應屬於哪一個種族等級？', options:['蒙古人','漢人','南人','色目人'], answer:3,
+            hint:'「西域以西的民族」叫什麼人？', why:'講義 p.33：色目人指西域以西的民族，多負責財政事務。' } },
+      { id:'3-5', type:'quiz', model:'scroll', ref:'p.39', title:'阿哲是哪一等？',
+        q:{ q:'阿哲原是南宋統治下的廣西壯族人，元滅南宋後受蒙古人統治。依時代背景，阿哲屬於哪一個種族等級？', options:['南人','蒙古人','漢人','色目人'], answer:0,
+            hint:'原本受「南宋」統治的人，被分在哪一等？', why:'講義 p.33：南人是原受南宋統治的漢人及南方各族。' } },
+      { id:'3-6', type:'surprise', tag:'想一想', ref:'p.33', title:'為什麼元曲這麼紅？',
+        text:'元代融合音樂、舞蹈的戲劇很受歡迎。因為種族政策讓漢人與南人在科舉上不如蒙古人和色目人，許多讀書人很難透過科舉當官，就轉而投入戲劇創作。' },
+      { id:'3-7', type:'quiz', model:'tower', ref:'p.33', title:'元朝為什麼瓦解？',
+        q:{ q:'種族歧視最容易引發政治、社會不安。中國歷史上哪一個朝代因為實行差別待遇的種族政策而導致衰亂？', options:['北宋','南宋','元代','明代'], answer:2,
+            hint:'把人分成四等的是哪一朝？', why:'講義 p.33：元世祖之後帝位糾紛不斷、財政混亂、民變紛起，元朝因而瓦解。' } }
+    ]},
+    { id:'i4', name:'宋元經濟', at:[3,0], color:'#58a6a6', ground:'brick', tree:'fruit', time:650, landmark:'market', gate:{pass:2,of:3}, tiles:[
+      { id:'4-1', type:'lesson', model:'rice', ref:'p.34–35', title:'占城稻',
+        text:'北宋自占城（今越南）引進早熟稻，稻米產量大增。一般水稻約 180 天成熟，占城稻約 100 天就能收成，又耐旱，能種在高地、山坡。糧食增加促進人口成長，帶動商業發展。',
+        points:['占城＝今越南','一般水稻 180 天，占城稻約 100 天','糧足人增，帶動商業'],
+        q:{ q:'北宋從哪裡引進早熟的占城稻？', options:['印度','日本','占城（今越南）','美洲'], answer:2,
+            hint:'稻子的名字就是答案的地名。', why:'講義 p.34：北宋自占城（今越南）引進早熟稻。' } },
+      { id:'4-2', type:'lesson', model:'market', ref:'p.34–35', title:'坊市瓦解與夜市',
+        text:'唐代中期以前實行「坊市制度」，住宅區（坊）和商業區（市）分開，還有「夜禁」。到了宋代，坊市制度瓦解，商人可以到處做買賣、隨時交易，夜市因此興旺。',
+        points:['唐：坊市分離、夜禁','宋：坊市制度瓦解','夜市興盛'],
+        q:{ q:'宋代商業發達，下列何者的出現，說明宋代已取消坊市制度，沒有營業時間與地點的限制？', options:['夜市','驛站','市舶司','紙幣'], answer:0,
+            hint:'哪一個跟「時間」最有關？', why:'講義 p.34–35：坊市制度瓦解、夜禁取消，夜市因此興盛。' } },
+      { id:'4-3', type:'lesson', model:'scroll', ref:'p.34、38', title:'清明上河圖與紙幣',
+        text:'張擇端的《清明上河圖》描繪汴京的城市生活，反映北宋的繁華。宋元也因商業需要出現紙幣：北宋四川商人發行的「交子」是世界上最早正式發行的鈔票；元代政府發行「寶鈔」通行全國。',
+        points:['《清明上河圖》畫的是北宋汴京','交子：世界最早的鈔票','元代寶鈔通行全國'],
+        q:{ q:'2024 年「會動的清明上河圖」展覽，讓民眾了解中國哪一朝代的城市生活？', options:['漢代','唐代','元代','宋代'], answer:3,
+            hint:'畫裡的城市是汴京。', why:'講義 p.34：《清明上河圖》描繪汴京的城市生活，反映北宋的繁華。' } },
+      { id:'4-4', type:'lesson', model:'ship', ref:'p.34', title:'市舶司',
+        text:'宋代國際貿易以海路為主，在泉州、廣州等港口設市舶司管理，稅收是政府的重要收入。市舶司始設於唐、興盛於宋元，負責管理商船、檢查入港貨物和徵稅，功能類似今日的海關。',
+        points:['主要港口：泉州、廣州','始設於唐，興盛於宋元','類似今日的海關'],
+        q:{ q:'宋元時期負責管理商船、檢查入港貨物並徵稅，性質如同今日海關的機構是？', options:['郊商','市舶司','洋行','驛站'], answer:1,
+            hint:'名字裡有「舶」，就是船。', why:'講義 p.34：市舶司負責管理商船、檢查入港貨物與徵稅，類似今日海關。' } },
+      { id:'4-5', type:'lesson', model:'post', ref:'p.34', title:'驛站',
+        text:'元代海上貿易依舊興盛，而蒙古帝國的擴張更打通了東西陸路貿易。各地廣設「驛站」，提供信使、官員與旅人歇息，促進歐亞的貿易與貨物流通。',
+        points:['蒙古帝國打通陸路','驛站：信使、官員、旅人歇息','歐亞貿易體系成形'],
+        q:{ q:'哪一個民族在各地廣設「驛站」，促使歐亞國際貿易體系隨之成形？', options:['契丹人','突厥人','女真人','蒙古人'], answer:3,
+            hint:'打通東西陸路的是哪個大帝國？', why:'講義 p.34：蒙古帝國擴張，各地廣設驛站，國際貿易體系隨之成形。' } },
+      { id:'4-6', type:'quiz', model:'lighthouse', ref:'p.35', title:'宋代的貿易港',
+        q:{ q:'宋代國際貿易以海路為主，主要的貿易港口有哪些？', options:['汴京、臨安','大都、占城','廣州、泉州','上海、廈門'], answer:2,
+            hint:'汴京、臨安、大都都是首都，不是海港。', why:'講義 p.34：宋代在泉州、廣州等主要港口設有市舶司。' } },
+      { id:'4-7', type:'surprise', tag:'想一想', ref:'p.35', title:'宋代為什麼走海路？',
+        text:'北方有遼、金等政權阻隔，宋代的陸路貿易受到限制，所以宋代對外貿易主要是海上貿易。等到蒙古帝國打通歐亞，元代的陸上貿易才又興盛起來。' }
+    ]},
+    { id:'i5', name:'宋元文化', at:[3,1], color:'#9cc27a', ground:'dots', tree:'sakura', time:720, landmark:'pagoda', gate:{pass:2,of:3}, tiles:[
+      { id:'5-1', type:'lesson', model:'pagoda', ref:'p.35', title:'理學',
+        text:'宋代政府實施文人政治、提倡儒學，儒家學者融合佛學等思想，形成「理學」。',
+        points:['背景：文人政治、提倡儒學','儒學＋佛學等思想＝理學'],
+        q:{ q:'哪一個王朝實施文人政治，社會文風興盛，促使儒家學者融合佛學等思想，形成「理學」？', options:['唐代','元代','宋代','漢代'], answer:2,
+            hint:'第 1 島學過：誰「重文輕武」？', why:'講義 p.35：宋代政府實施文人政治，儒家學者融合佛學形成理學。' } },
+      { id:'5-2', type:'lesson', model:'book', ref:'p.35', title:'朱熹與四書集注',
+        text:'南宋學者朱熹集理學之大成，曾在江西白鹿洞書院講學。他的著作《四書集注》在元代以後成為科舉考試的定本。理學思想日後也傳到朝鮮與日本，很受重視。',
+        points:['朱熹：集理學大成','《四書集注》：元代以後科舉定本','理學傳到朝鮮、日本'],
+        q:{ q:'集理學大成，著作《四書集注》成為元代以後科舉考試定本的是誰？', options:['畢昇','朱熹','張擇端','徐光啟'], answer:1,
+            hint:'畢昇發明活字、張擇端畫畫、徐光啟翻譯數學書。', why:'講義 p.35：南宋學者朱熹集理學大成，著《四書集注》。' } },
+      { id:'5-3', type:'lesson', model:'cannon', ref:'p.36', title:'火藥',
+        text:'宋元科技以火藥、印刷術、指南針最具代表性。火藥在宋代運用於戰爭（如霹靂炮、震天雷），後來經蒙古人改良後傳入歐洲。',
+        points:['宋代：用於戰爭','經蒙古人改良','傳入歐洲'],
+        q:{ q:'火藥在宋代用於戰爭，後來經哪一個民族改良後傳入歐洲？', options:['蒙古人','阿拉伯人','女真人','日本人'], answer:0,
+            hint:'哪個民族西征一路打到歐洲？', why:'講義 p.36：火藥經蒙古人改良後傳入歐洲。' } },
+      { id:'5-4', type:'lesson', model:'printing', ref:'p.36', title:'活字印刷術',
+        text:'北宋畢昇發明活字印刷術：在膠泥上刻字、用火燒硬成為活字，再依序排在鐵板上印刷。它改善了以往印刷不能重新排版的缺點，提高印刷效率。',
+        points:['北宋畢昇發明','可以重新排版','提高印刷效率'],
+        q:{ q:'下列哪一項中國科技，改善了以往不能重新排版的缺點，可以自由組字，提高製作書籍的效率？', options:['火藥','造紙術','指南針','活字印刷術'], answer:3,
+            hint:'「活」字可以拆下來重排。', why:'講義 p.36：活字印刷術改善以往印刷不能重新排版的缺點。' } },
+      { id:'5-5', type:'lesson', model:'compass', ref:'p.36', title:'指南針',
+        text:'指南針在宋代開始用於航海，後來經阿拉伯人傳入歐洲，有助於日後新航路的發現。',
+        points:['宋代開始用於航海','經阿拉伯人傳入歐洲','幫助日後發現新航路'],
+        q:{ q:'指南針在宋代開始用於航海，後來經哪一個民族傳入歐洲？', options:['蒙古人','阿拉伯人','契丹人','西班牙人'], answer:1,
+            hint:'火藥靠蒙古人，指南針靠的是海上商人。', why:'講義 p.36：指南針經阿拉伯人傳入歐洲。' } },
+      { id:'5-6', type:'lesson', model:'mosque', ref:'p.36', title:'伊斯蘭教東來',
+        text:'宋代海陸交通暢通，信仰伊斯蘭教的商人東來貿易者眾多，伊斯蘭教隨之廣泛傳播。元代時中國的伊斯蘭教信徒統稱「回回」；建於北宋的泉州清淨寺，是具有阿拉伯建築風格的清真寺。',
+        points:['伊斯蘭教商人東來','元代信徒統稱「回回」','泉州清淨寺：阿拉伯風格清真寺'],
+        q:{ q:'泉州的「清淨寺」屬於哪一種宗教場所？', options:['清真寺','佛寺','教堂','道觀'], answer:0,
+            hint:'它有阿拉伯建築風格。', why:'講義 p.36：建於北宋的泉州清淨寺，是具有阿拉伯建築風格的清真寺。' } }
+    ]},
+    { id:'i6', name:'明帝國', at:[2,2], color:'#c97b9a', ground:'stripes', tree:'pine', time:800, landmark:'wall', gate:{pass:2,of:3}, tiles:[
+      { id:'6-1', type:'lesson', model:'palace', ref:'p.44', title:'朱元璋建明',
+        text:'元朝末年群雄並起，朱元璋擊敗群雄，定都應天（今江蘇南京），國號「大明」，是為明太祖。他驅逐蒙古人，結束了元朝的統治。',
+        points:['1368 年明朝建立','首都應天＝今南京','驅逐蒙古人'],
+        q:{ q:'元朝末年群雄並起，最後是誰擊敗群雄，建立國號「大明」？', options:['李自成','朱元璋','吳三桂','鄭和'], answer:1,
+            hint:'他就是明太祖。', why:'講義 p.44：朱元璋擊敗群雄，國號大明，是為明太祖。' } },
+      { id:'6-2', type:'lesson', model:'wall', ref:'p.44、56', title:'明成祖遷都北京',
+        text:'明成祖時，為了防範蒙古，把首都遷到北京，並修築長城、北伐蒙古，國勢達到鼎盛。',
+        points:['首都遷到北京','修築長城','北伐蒙古'],
+        q:{ q:'明成祖把首都遷到靠近邊防重鎮的北京，是為了防範哪一個外患？', options:['契丹','女真','突厥','蒙古'], answer:3,
+            hint:'被明朝趕回北方的是誰？', why:'講義 p.44：明成祖時為防範蒙古，將首都遷到北京並修長城。' } },
+      { id:'6-3', type:'lesson', model:'fort', ref:'p.44、58', title:'內憂外患',
+        text:'明朝中期以後內政腐敗，加上北方蒙古的進犯、東南沿海倭寇的騷擾，國勢漸衰。明末，東北的女真也再度崛起。',
+        points:['北方：蒙古','東南沿海：倭寇','明末：女真崛起'],
+        q:{ q:'明朝時周邊民族逐漸壯大，邊疆多次遭到侵擾。下列哪些是明朝的主要外患？', options:['蒙古、契丹、女真','倭寇、契丹、鮮卑','蒙古、女真、倭寇','鮮卑、契丹、女真'], answer:2,
+            hint:'契丹的遼國早在宋朝就滅亡了。', why:'講義 p.44：北方蒙古進犯、東南沿海倭寇騷擾，明末女真崛起。' } },
+      { id:'6-4', type:'lesson', model:'banner', ref:'p.44', title:'流寇與明亡',
+        text:'明末人口大增、糧食不足，天災頻仍而發生大饑荒，災民與饑兵結合成「流寇」，其中以李自成勢力最大。1644 年他攻陷北京，導致明朝滅亡。',
+        points:['災民＋饑兵＝流寇','李自成勢力最大','1644 年攻陷北京'],
+        q:{ q:'明末大饑荒造成災民與饑兵結合，最後哪一股勢力攻陷北京，導致明朝滅亡？', options:['李自成','鄭和','吳三桂','朱元璋'], answer:0,
+            hint:'他是流寇的領袖。', why:'講義 p.44：流寇中以李自成勢力最大，他攻陷北京，導致明朝滅亡。' } },
+      { id:'6-5', type:'surprise', tag:'生活時事', ref:'p.56', title:'小冰期與明朝滅亡',
+        text:'17 世紀初，全球正值「小冰期」的高峰，中國多地出現嚴重乾旱，饑荒四起，流寇橫行。李自成 1606 年出生，1644 年攻陷北京，崇禎皇帝自縊於煤山。全球氣候變遷，間接導致了明帝國的滅亡。' },
+      { id:'6-6', type:'quiz', model:'scroll', ref:'p.51', title:'崇禎的遺詔',
+        q:{ q:'明思宗（崇禎）自盡前留下遺詔：「朕自登極十七年，逆賊直逼京師……」遺詔中的「逆賊」指的是？', options:['滿清','流寇','倭寇','蒙古'], answer:1,
+            hint:'是誰攻進北京，讓崇禎走投無路？', why:'攻陷北京的是李自成率領的流寇（講義 p.44）。' } }
+    ]},
+    { id:'i7', name:'清帝國', at:[1,2], color:'#3e7c8c', ground:'brick', tree:'round', time:880, landmark:'palace', gate:{pass:2,of:3}, tiles:[
+      { id:'7-1', type:'lesson', model:'banner', ref:'p.45', title:'大清與滿洲',
+        text:'女真族再度崛起於東北，逐漸取代蒙古成為北方強權，後來以「大清」為國號，並改族名為「滿洲」，歷史上稱之為滿清。',
+        points:['女真族再度崛起','國號「大清」','改族名為「滿洲」'],
+        q:{ q:'17 世紀時位於東北，建國號「大清」、後來改族名為「滿洲」的是哪一族？', options:['蒙古','契丹','女真','西夏'], answer:2,
+            hint:'它曾經建立過金國，這次是「再度」崛起。', why:'講義 p.45：女真族再度崛起於東北，以「大清」為國號，改族名為滿洲。' } },
+      { id:'7-2', type:'lesson', model:'fort', ref:'p.45', title:'吳三桂引清兵入關',
+        text:'清兵在明將吳三桂的協助下進入山海關，進占北京，消滅了流寇及明朝的殘餘勢力。',
+        points:['明將吳三桂開關','清兵進占北京','消滅流寇與明殘餘勢力'],
+        q:{ q:'哪一位明朝將領打開山海關引清軍入關，並與清軍合作消滅流寇？', options:['吳三桂','利瑪竇','鄭和','朱元璋'], answer:0,
+            hint:'他是守山海關的明將。', why:'講義 p.45：清兵在明將吳三桂的協助下入關，進占北京。' } },
+      { id:'7-3', type:'lesson', model:'brush', ref:'p.45、52', title:'高壓與懷柔',
+        text:'滿清以少數民族入主中國，為了鞏固政權，採取高壓與懷柔並行：高壓是強迫漢人薙髮留辮、大興文字獄；懷柔是舉行科舉、籠絡士人。',
+        points:['高壓：薙髮留辮、文字獄','懷柔：舉行科舉、籠絡士人'],
+        q:{ q:'清代徐駿寫了「明月有情還顧我，清風無意不留人」，結果被皇帝下令處死。這和清朝哪一項政策有關？', options:['海禁政策','文字獄','薙髮留辮','科舉取士'], answer:1,
+            hint:'因為「寫的字」而被處死。', why:'講義 p.45：清朝高壓政策包括大興文字獄。' } },
+      { id:'7-4', type:'lesson', model:'palace', ref:'p.45', title:'康雍乾盛世',
+        text:'康熙、雍正、乾隆三朝文治武功強盛，蒙古、臺灣、西藏、新疆等地相繼納入版圖，史稱「康雍乾盛世」，完成了近代中國版圖的輪廓。',
+        points:['康熙 → 雍正 → 乾隆','蒙古、臺灣、西藏、新疆納入版圖'],
+        q:{ q:'清朝盛世中的三位皇帝，依時間先後排列為何？', options:['雍正→乾隆→康熙','乾隆→康熙→雍正','康熙→乾隆→雍正','康熙→雍正→乾隆'], answer:3,
+            hint:'就照「康雍乾」三個字的順序。', why:'講義 p.45：史稱「康雍乾盛世」，依序是康熙、雍正、乾隆。' } },
+      { id:'7-5', type:'surprise', tag:'地圖小註', ref:'p.45', title:'臺灣納入版圖',
+        text:'康熙皇帝派遣施琅攻打臺灣，鄭克塽投降，結束了鄭氏政權在臺灣的統治，臺灣從此納入清朝版圖。' },
+      { id:'7-6', type:'quiz', model:'house', ref:'p.59', title:'薙髮留辮',
+        q:{ q:'某少數民族入主中原後，要求漢人改剃滿族髮式，以確立統治者的地位。這種情形普遍出現在哪一個朝代？', options:['清朝','宋朝','元朝','明朝'], answer:0,
+            hint:'「滿族」髮式，是哪個朝代的統治民族？', why:'講義 p.45：清朝的高壓政策強迫漢人薙髮留辮。' } }
+    ]},
+    { id:'i8', name:'明清貿易', at:[0,2], color:'#d98b4f', ground:'dots', tree:'palm', time:960, landmark:'ship', gate:{pass:2,of:3}, tiles:[
+      { id:'8-1', type:'lesson', model:'vase', ref:'p.46、51', title:'專業市鎮：景德鎮',
+        text:'明清時期手工業分工日益細密，專業市鎮紛紛興起，例如江西景德鎮以製作瓷器聞名。各市鎮的商品互相流通，也滿足了海外貿易的需求。',
+        points:['手工業分工細密','江西景德鎮：瓷器','滿足海外貿易需求'],
+        q:{ q:'唐先生在網路上看到一件明代瓷器，想進一步了解這類商品的歷史淵源，應該搜尋哪一個關鍵字？', options:['山海關','紫禁城','景德鎮','長崎'], answer:2,
+            hint:'哪一個地名以製作瓷器聞名？', why:'講義 p.46：江西景德鎮以製作瓷器聞名。' } },
+      { id:'8-2', type:'lesson', model:'hall', ref:'p.46', title:'朝貢貿易',
+        text:'明清以「天朝」自居，透過冊封建立以中國為中心的世界觀。外國必須接受冊封，才能藉著進貢的名義通商，稱為「朝貢貿易」：中國是宗主國，周邊國家是藩屬國。',
+        points:['以「天朝」自居','外國須接受冊封','藉進貢名義通商'],
+        q:{ q:'明清以「天朝」自居，外國須接受冊封，才能藉進貢的名義通商。這是哪一種貿易型態？', options:['朝貢貿易','走私貿易','自由貿易','間接貿易'], answer:0,
+            hint:'名義是「進貢」。', why:'講義 p.46：外國須接受冊封才能藉進貢名義通商，稱為朝貢貿易。' } },
+      { id:'8-3', type:'lesson', model:'ship', ref:'p.46–47', title:'鄭和下西洋',
+        text:'15 世紀前期，明成祖派鄭和率領艦隊出使「西洋」（今東南亞、印度洋一帶，最遠到達非洲東岸）。1405～1433 年共七次，各國受商利吸引，紛紛以進貢名義來中國貿易。',
+        points:['1405～1433 年，共七次','西洋＝東南亞、印度洋一帶','最遠到非洲東岸'],
+        q:{ q:'鄭和下西洋是 15 世紀前期大規模的遠洋航行，首航是在哪一位皇帝在位時？', options:['明太祖','明成祖','清康熙','清乾隆'], answer:1,
+            hint:'就是把首都遷到北京的那位皇帝。', why:'講義 p.46：15 世紀前期，明成祖派鄭和率艦隊出使西洋。' } },
+      { id:'8-4', type:'lesson', model:'port', ref:'p.46', title:'海禁政策',
+        text:'明初為了防備「倭寇」，實行海禁政策，只允許官方主導的「朝貢貿易」，民間私自出海會遭到禁止。東南沿海居民為了謀生私自出海，具有武裝力量的海商進行走私貿易。明代後期海禁趨緩，沿海貿易再度興起。',
+        points:['目的：防備倭寇','只准官方朝貢貿易','後期趨緩，走私海商活躍'],
+        q:{ q:'明初實行海禁政策，主要是為了防備什麼？', options:['荷蘭人','流寇','倭寇','蒙古'], answer:2,
+            hint:'海禁管的是海上，威脅來自東南沿海。', why:'講義 p.46：明初為了防備倭寇，實行海禁政策。' } },
+      { id:'8-5', type:'lesson', model:'corn', ref:'p.47', title:'白銀與美洲作物',
+        text:'15 世紀末歐洲新航路開通後，美洲白銀大量輸入中國，取代嚴重貶值的紙幣，形成白銀與銅錢並用。歐洲人用美洲白銀買中國的絲綢、瓷器再轉賣各地。玉米、番薯、馬鈴薯等美洲作物也傳入中國，緩和人口增加造成的糧食不足。',
+        points:['美洲白銀輸入，白銀與銅錢並用','歐洲人大買絲綢、瓷器','玉米、番薯、馬鈴薯傳入'],
+        q:{ q:'旺才到福建經商時正逢稻米歉收，許多人靠吃「番薯」才免於餓死。明清時期，番薯是從哪裡傳入中國的？', options:['非洲','歐洲','澳洲','美洲'], answer:3,
+            hint:'玉米、番薯、馬鈴薯都叫「＿＿作物」。', why:'講義 p.47：玉米、番薯與馬鈴薯等美洲作物傳入中國。' } },
+      { id:'8-6', type:'quiz', model:'coin', ref:'p.47', title:'貨幣的改變',
+        q:{ q:'15 世紀末歐洲各國陸續來華貿易，對明代與清代的貨幣使用產生什麼影響？', options:['紙幣的發行','白銀的流通','黃金的使用','青銅的周轉'], answer:1,
+            hint:'歐洲人從美洲帶來什麼買絲綢、瓷器？', why:'講義 p.47：美洲白銀輸入中國，形成白銀與銅錢並用的制度。' } }
+    ]},
+    { id:'i9', name:'東西文化交流', at:[-1,2], color:'#8f7fc4', ground:'stripes', tree:'sakura', time:1040, landmark:'globe', gate:{pass:2,of:3}, tiles:[
+      { id:'9-1', type:'lesson', model:'globe', ref:'p.48–50', title:'利瑪竇',
+        text:'大航海時代，西方傳教士積極到東亞傳教。明末天主教傳入中國，其中以耶穌會的利瑪竇影響最大。為了讓傳教順利，他允許教徒祭祖、祭孔；他繪製的《坤輿萬國全圖》把中國放在地圖中央。',
+        points:['耶穌會傳教士','允許教徒祭祖、祭孔','繪《坤輿萬國全圖》'],
+        q:{ q:'明末天主教傳入中國，其中哪一位耶穌會傳教士的影響最大？', options:['鄭和','徐光啟','利瑪竇','朱熹'], answer:2,
+            hint:'他是義大利人，徐光啟是他的合作夥伴。', why:'講義 p.48：明末天主教傳入中國，其中以耶穌會的利瑪竇影響最大。' } },
+      { id:'9-2', type:'lesson', model:'book', ref:'p.48', title:'西學東傳',
+        text:'傳教士把西方的火炮、數學、地理學、天文曆法等近代科技傳入中國。利瑪竇與徐光啟合譯的《幾何原本》成為許多中國人學數學的教材，點、線、面、三角形等用語都沿用它的翻譯。',
+        points:['火炮、數學、地理學、天文曆法','《幾何原本》：利瑪竇＋徐光啟','點、線、面、三角形'],
+        q:{ q:'下列哪一本數學專書，是傳教士和中國官員合譯、屬於中西文化交流下的產物？', options:['《四書集注》','《回回藥方》','《夢溪筆談》','《幾何原本》'], answer:3,
+            hint:'三角形、點、線、面這些用語出自這本書。', why:'講義 p.48：利瑪竇與徐光啟合譯《幾何原本》。' } },
+      { id:'9-3', type:'lesson', model:'pagoda', ref:'p.48、51', title:'中學西傳',
+        text:'傳教士也把中國的儒家經典、園林建築和瓷器傳到歐洲，一度形成歐洲的「中國熱」。例如 18 世紀英國邱園就建了一座中國式寶塔。',
+        points:['儒家經典、園林建築、瓷器','歐洲「中國熱」','英國邱園的中國式寶塔'],
+        q:{ q:'老李到英國旅遊，在公園看到亭臺樓閣、迴廊建築和垂柳，很有中國園林特色。這和下列何者有關？', options:['耶穌會傳教士的傳播','康熙禁教','蒙古西征','鄭和下西洋'], answer:0,
+            hint:'是誰把中國的園林建築帶到歐洲？', why:'講義 p.48：傳教士將中國的園林建築等傳到歐洲，形成「中國熱」。' } },
+      { id:'9-4', type:'lesson', model:'scroll', ref:'p.48', title:'禮儀之爭與禁教',
+        text:'清初，教宗不再允許中國教徒祭祖、祭孔，引發「禮儀之爭」。雍正即位後，又因傳教士涉及宮廷政爭，下令全面禁教，中西文化交流因此中斷。',
+        points:['教宗禁止祭祖、祭孔 → 禮儀之爭','傳教士涉入宮廷政爭','雍正全面禁教'],
+        q:{ q:'18 世紀初，因禮儀之爭與傳教士涉及宮廷政爭，清朝決定禁教。下令將傳教士逐出中國的是哪一位皇帝？', options:['康熙','雍正','乾隆','嘉慶'], answer:1,
+            hint:'「康雍乾」的中間那一位。', why:'講義 p.48：雍正即位後，因傳教士涉及宮廷政爭，下令全面禁教。' } },
+      { id:'9-5', type:'lesson', model:'telescope', ref:'p.49', title:'日本鎖國與蘭學',
+        text:'天主教在明代傳到日本，與當地文化衝突，引起社會不安，日本便實施鎖國，只准中國和荷蘭的商船到長崎貿易。荷蘭商人帶來的西方學術，日本人稱為「蘭學」，奠定了日本近代科學發展的基礎。',
+        points:['日本鎖國','只准中國、荷蘭商船到長崎','蘭學：荷蘭帶來的西方學術'],
+        q:{ q:'17 世紀日本實施鎖國，只允許中國和荷蘭的商船到哪裡進行貿易？', options:['廣島','函館','長崎','東京'], answer:2,
+            hint:'《長崎港圖》畫的就是這裡。', why:'講義 p.49：日本實施鎖國，只准中國和荷蘭的商船至長崎貿易。' } },
+      { id:'9-6', type:'quiz', model:'compass', ref:'p.50', title:'哪一個不是西學？',
+        q:{ q:'明末清初，耶穌會傳教士把西方近代科技傳入中國。下列哪一項「不」包括在內？', options:['數學','地理學','天文曆法','指南針'], answer:3,
+            hint:'有一樣東西是中國宋代就已經用於航海的。', why:'指南針是宋代中國用於航海、經阿拉伯人傳到歐洲的（講義 p.36），不是傳教士帶來的。' } }
+    ]},
+    { id:'i10', name:'題組大挑戰', at:[-2,3], color:'#4f9a8a', ground:'brick', tree:'palm', time:1110, landmark:'port', gate:{pass:2,of:3}, tiles:[
+      { id:'10-1', type:'lesson', model:'lighthouse', ref:'p.60', title:'泉州：海上絲路的主港',
+        text:'泉州是宋元時期海上絲綢之路的主港，與亞歷山大港齊名。外國商人帶著香料、藥物來到泉州，又把中國的絲綢、瓷器、茶葉運往西方；泉州也是伊斯蘭文化最早傳入中國的地區之一，清淨寺就是見證。',
+        points:['宋元海上絲路主港','與亞歷山大港齊名','運出絲綢、瓷器、茶葉'],
+        q:{ q:'一千多年前泉州海外貿易的盛況，和下列哪一個背景最密切？', options:['設立市舶司','專業市鎮的興起','歐洲掀起中國熱','海商集團橫行東亞'], answer:0,
+            hint:'宋代在泉州、廣州設了什麼機構來管理商船？', why:'講義 p.34：宋代在泉州、廣州等主要港口設市舶司管理對外貿易。' } },
+      { id:'10-2', type:'quiz', model:'ship', ref:'p.41', title:'泉州的世界遺產',
+        q:{ q:'泉州因反映宋元時期獨特的城市空間結構，被列入《世界遺產名錄》。依史實，泉州是基於哪一個歷史價值獲得肯定？', options:['草原民族的立國首都','世界海洋商貿的中心','農業民族的軍事重鎮','打破坊市界線的起點'], answer:1,
+            hint:'泉州是海上絲路的「主港」。', why:'泉州是宋元時期海上絲綢之路的主港（講義 p.60）。' } },
+      { id:'10-3', type:'quiz', model:'mosque', ref:'p.60', title:'誰帶來伊斯蘭文化？',
+        q:{ q:'泉州是伊斯蘭文化傳入中國最早的地區之一。當時的伊斯蘭文化是由誰傳入中國的？', options:['基督教教徒','契丹人','伊斯蘭教商人','女真人'], answer:2,
+            hint:'第 5 島學過：宋代誰「東來貿易」？', why:'講義 p.36：宋代信仰伊斯蘭教的商人東來貿易，伊斯蘭教隨之傳播。' } },
+      { id:'10-4', type:'lesson', model:'chili', ref:'p.60', title:'辣椒的旅程',
+        text:'川菜以麻、辣聞名，但辣椒其實是明末清初才傳入中國的。當時西方正值大航海時代，歐洲人把辣椒從原產地美洲引入中國，一開始只當「觀賞」用，到清帝國中葉才用在料理上。',
+        points:['原產地：美洲','明末清初由歐洲人引入','清中葉才用於料理'],
+        q:{ q:'依文中所述，辣椒最可能是由誰引入中國的？', options:['阿拉伯人','蒙古人','日本人','西班牙人'], answer:3,
+            hint:'文中說是「歐洲人」引入的。四個選項裡誰是歐洲人？', why:'講義 p.60：歐洲人將辣椒從原產地美洲引入中國；選項中只有西班牙人是歐洲人。' } },
+      { id:'10-5', type:'quiz', model:'globe', ref:'p.60', title:'辣椒的時代背景',
+        q:{ q:'辣椒傳入中國的時代背景是什麼？', options:['蒙古西征','歐洲人發現新航路','鄭和出使西洋','阿拉伯人前來東亞'], answer:1,
+            hint:'辣椒從美洲來，美洲和亞洲是怎麼連起來的？', why:'講義 p.60：當時西方正值大航海時代；歐洲人發現新航路後，美洲作物傳入中國（p.47）。' } },
+      { id:'10-6', type:'quiz', model:'palace', ref:'p.43', title:'這是哪座首都？',
+        q:{ q:'「這是一座依計畫興建的城市，城中可見基督教教堂、伊斯蘭教清真寺與佛教寺廟；朝廷聘用色目人擔任財政官員，並推行全國性紙幣。」這座城市最可能是？', options:['北宋汴京','元代大都','東漢洛陽','唐代長安'], answer:1,
+            hint:'「色目人」是哪一朝的種族等級？', why:'色目人擔任財政官員、寶鈔通行全國，都是元代的特色；元的首都是大都（講義 p.32–34）。' } }
+    ]}
+  ],
+  decor: [
+    { at:[0,1], color:'#b9c79a', ground:'dots', tree:'round' },
+    { at:[1,1], color:'#e8c9a0', ground:'brick', tree:'sakura' },
+    { at:[2,1], color:'#c9b6d9', ground:'stripes', tree:'pine' }
+  ]
+};
+
+// ====================================================================
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+import { SimplexNoise } from 'three/addons/math/SimplexNoise.js';
+
+const $ = s => document.querySelector(s);
+try { await main(); }
+catch (e) {
+  console.error(e);
+  window.__islandError = String(e && e.message || e);
+  const el = $('#loadErr'); if (el) el.textContent = '載入失敗：' + window.__islandError;
+}
+
+async function main(){
+// ---------------- constants & utils
+const R=2.02, SPACING=2.28, TOP=0.65, WATER_Y=-0.18, S3=Math.sqrt(3);
+const PAL={coral:'#db6a41',ink:'#211d1d',cream:'#fff8f4',yellow:'#fcea8b',stone:'#c5b5a7',green:'#71806a',glass:'#86a8a6',wood:'#b48560',teal:'#3e7c8c',wall:'#f4ebdd',eave:'#a34e34',win:'#a8c4c2',leaf1:'#9cc27a',leaf2:'#8db86f',leaf3:'#728f5f',pink:'#f2b5c6',aqua:'#58a6a6',blue:'#6f7fb5',red:'#c8463a',gold:'#e0b84a',path:'#ead0b0',curb:'#e4d6c3'};
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rnd=mulberry32(20261115);
+const noise=new SimplexNoise({random:mulberry32(7)});
+function crand(){ try{ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]/4294967296; }catch(e){ return Math.random(); } }
+const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)};
+const easeIO=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const easeOut=t=>1-Math.pow(1-t,3);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const NUMS='①②③④⑤⑥⑦⑧⑨⑩';
+const isMobile=matchMedia('(max-width:800px)').matches;
+const mqRM=matchMedia('(prefers-reduced-motion: reduce)');
+let RM=mqRM.matches; mqRM.addEventListener?.('change',e=>{RM=e.matches});
+const lsKey='clayIsland:'+(function(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))|0;return (h>>>0).toString(36)})(DATA.meta.title);
+
+// ---------------- renderer / scene / camera
+const host=$('#scene');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,isMobile?1.4:1.75));
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1;
+host.appendChild(renderer.domElement);
+const labelRenderer=new CSS2DRenderer(); labelRenderer.domElement.className='labels'; host.appendChild(labelRenderer.domElement);
+const scene=new THREE.Scene();
+scene.fog=new THREE.Fog(0xf4eee3,42,150);
+const camera=new THREE.PerspectiveCamera(32,1,.3,320);
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true; controls.dampingFactor=.07;
+controls.minPolarAngle=THREE.MathUtils.degToRad(25); controls.maxPolarAngle=THREE.MathUtils.degToRad(70);
+controls.minDistance=3; controls.maxDistance=70;
+controls.enablePan=true; controls.screenSpacePanning=false;
+controls.mouseButtons={LEFT:THREE.MOUSE.ROTATE,MIDDLE:THREE.MOUSE.DOLLY,RIGHT:THREE.MOUSE.PAN};
+controls.touches={ONE:THREE.TOUCH.ROTATE,TWO:THREE.TOUCH.DOLLY_ROTATE};
+
+// ---------------- geometry library
+const hip=new THREE.ConeGeometry(.7071,1,4); hip.rotateY(Math.PI/4);
+const GEO={
+  box:new THREE.BoxGeometry(1,1,1), rbox:new RoundedBoxGeometry(1,1,1,2,.12),
+  cyl:new THREE.CylinderGeometry(.5,.5,1,14), cone:new THREE.ConeGeometry(.5,1,14),
+  sphere:new THREE.SphereGeometry(.5,16,12), ico:new THREE.IcosahedronGeometry(.5,1),
+  dome:new THREE.SphereGeometry(.5,16,8,0,Math.PI*2,0,Math.PI/2), torus:new THREE.TorusGeometry(.35,.12,8,20),
+  prism:new THREE.CylinderGeometry(.5,.5,1,3), hip,
+  glowbox:new THREE.BoxGeometry(1,1,1), glowsphere:new THREE.SphereGeometry(.5,12,10)
+};
+const MAT={
+  solid:new THREE.MeshStandardMaterial({color:0xffffff,roughness:.78,metalness:0}),
+  glow:new THREE.MeshStandardMaterial({color:0xffffff,roughness:.6,emissive:new THREE.Color('#ffc777'),emissiveIntensity:0})
+};
+
+// ---------------- instanced kit
+const _m=new THREE.Matrix4(),_m2=new THREE.Matrix4(),_m3=new THREE.Matrix4(),_q=new THREE.Quaternion(),_e=new THREE.Euler(),_v=new THREE.Vector3(),_s=new THREE.Vector3();
+class Kit{
+  constructor(cast){this.parts=[];this.cast=cast;this.meshes=[];}
+  begin(x,z,rotY=0,scale=1,y=TOP){ const h={origin:new THREE.Vector3(x,y,z),refs:[],s:1}; this.cur=h;
+    this.M=new THREE.Matrix4().compose(h.origin,new THREE.Quaternion().setFromEuler(new THREE.Euler(0,rotY,0)),new THREE.Vector3(scale,scale,scale)); return h; }
+  p(kind,x,y,z,sx,sy,sz,color,ry=0,rx=0,rz=0){
+    const j=1+(rnd()*2-1)*.0072;
+    const L=new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rx,ry,rz)),new THREE.Vector3(sx*j,sy*j,sz*j));
+    this.parts.push({kind,m:this.M.clone().multiply(L),c:new THREE.Color(color),h:this.cur}); }
+  build(){ const g={}; for(const p of this.parts)(g[p.kind]??=[]).push(p);
+    for(const kind in g){ const arr=g[kind]; const glow=kind.startsWith('glow');
+      const mesh=new THREE.InstancedMesh(GEO[kind],glow?MAT.glow:MAT.solid,arr.length);
+      arr.forEach((p,i)=>{mesh.setMatrixAt(i,p.m);mesh.setColorAt(i,p.c);p.h.refs.push({mesh,i,m:p.m,c:p.c});});
+      mesh.castShadow=this.cast&&!glow; mesh.receiveShadow=!glow; mesh.frustumCulled=false;
+      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(mesh); this.meshes.push(mesh); }
+    this.parts=null; }
+}
+function hScale(h,s){ h.s=s; const o=h.origin; const ss=Math.max(s,1e-4);
+  _m2.makeTranslation(o.x,o.y,o.z).multiply(_m3.makeScale(ss,ss,ss)).multiply(_m.makeTranslation(-o.x,-o.y,-o.z));
+  for(const r of h.refs){ const M=s===1?r.m:_m.copy(_m2).multiply(r.m); r.mesh.setMatrixAt(r.i,M); r.mesh.instanceMatrix.needsUpdate=true; } }
+const _c=new THREE.Color();
+function hTint(h,col,amt){ for(const r of h.refs){ r.mesh.setColorAt(r.i,_c.copy(r.c).lerp(col,amt)); r.mesh.instanceColor.needsUpdate=true; } }
+const kit=new Kit(true), small=new Kit(false);
+
+// ---------------- models (unit space ±0.5, height 0..1.5)
+const MODELS={
+  house(k){ k.p('rbox',0,.32,0,.8,.64,.7,PAL.wall); k.p('box',0,.665,0,.92,.05,.82,PAL.eave); k.p('hip',0,.92,0,1.0,.5,.9,PAL.coral); k.p('box',0,.17,.355,.18,.3,.02,PAL.wood); k.p('glowbox',-.24,.42,.355,.15,.15,.02,PAL.win); k.p('glowbox',.24,.42,.355,.15,.15,.02,PAL.win); },
+  palace(k){ k.p('box',0,.08,0,1,.16,.86,PAL.stone); k.p('box',0,.42,0,.78,.52,.6,PAL.red); k.p('box',0,.32,.305,.16,.32,.02,PAL.wood);
+    for(const x of [-.27,.27]) k.p('glowbox',x,.45,.305,.14,.14,.02,PAL.win);
+    k.p('box',0,.7,0,.9,.04,.72,PAL.eave); k.p('hip',0,.86,0,1.08,.32,.86,PAL.gold); k.p('box',0,1.07,0,.46,.2,.36,PAL.red); k.p('hip',0,1.26,0,.66,.24,.52,PAL.gold); k.p('box',0,.12,.5,.34,.08,.16,PAL.stone); },
+  fort(k,c){ k.p('box',0,.22,.42,.94,.44,.12,PAL.stone); k.p('box',0,.22,-.42,.94,.44,.12,PAL.stone); k.p('box',.42,.22,0,.12,.44,.72,PAL.stone); k.p('box',-.42,.22,0,.12,.44,.72,PAL.stone);
+    for(const x of [-.36,-.18,0,.18,.36]) k.p('box',x,.48,.42,.09,.09,.12,PAL.stone);
+    k.p('cyl',0,.55,0,.34,1.1,.34,'#d9ccb8'); k.p('cone',0,1.25,0,.46,.32,.46,PAL.coral); k.p('glowbox',0,.82,.17,.08,.12,.02,PAL.win); k.p('box',0,.15,.485,.2,.26,.02,PAL.wood);
+    k.p('cyl',.3,.75,.3,.025,.6,.025,PAL.wood); k.p('box',.41,.98,.3,.2,.12,.012,c); },
+  wall(k){ for(let i=0;i<6;i++){ const x=-.45+i*.18, h=.32+(i%2?.06:0)+i*.03, z=Math.sin(i*1.3)*.1; k.p('box',x,h/2,z,.2,h,.22,PAL.stone); k.p('box',x,h+.04,z+.08,.06,.08,.06,PAL.stone); }
+    k.p('box',-.44,.36,0,.26,.72,.28,'#d9ccb8'); k.p('hip',-.44,.82,0,.36,.2,.38,PAL.red); k.p('box',.44,.44,.05,.26,.88,.28,'#d9ccb8'); k.p('hip',.44,.98,.05,.36,.2,.38,PAL.red); k.p('glowbox',.44,.6,.195,.08,.1,.02,PAL.win); },
+  pagoda(k){ for(let i=0;i<5;i++){ const s=.62-i*.1, y=i*.24; k.p('box',0,y+.1,0,s,.2,s,PAL.cream); k.p('hip',0,y+.25,0,s+.22,.1,s+.22,PAL.teal); k.p('glowbox',0,y+.1,s/2+.005,.08,.1,.02,PAL.win); }
+    k.p('cyl',0,1.32,0,.04,.24,.04,PAL.gold); k.p('sphere',0,1.45,0,.07,.07,.07,PAL.gold); },
+  yurt(k,c){ k.p('cyl',0,.24,0,.9,.48,.9,PAL.cream); k.p('torus',0,.38,0,1.29,1.29,.5,c,0,Math.PI/2); k.p('cone',0,.66,0,1.0,.36,1.0,'#efe3cf'); k.p('cyl',0,.86,0,.16,.06,.16,c); k.p('box',0,.17,.45,.18,.3,.02,c);
+    k.p('cyl',.42,.5,-.3,.03,1.0,.03,PAL.wood); k.p('box',.52,.88,-.3,.2,.14,.012,c); },
+  banner(k,c){ k.p('cyl',0,.02,0,.9,.04,.9,'#d9c9a3'); k.p('cone',-.22,.2,.15,.36,.4,.36,PAL.cream); k.p('cone',.22,.18,.2,.3,.36,.3,'#efe3cf');
+    k.p('cyl',.05,.6,-.2,.035,1.2,.035,PAL.wood); k.p('box',.2,1.05,-.2,.3,.22,.015,c); k.p('sphere',.05,1.22,-.2,.06,.06,.06,PAL.gold); },
+  ship(k){ k.p('cyl',0,.02,0,1,.04,.62,'#8fc3cb'); k.p('rbox',0,.18,0,.8,.22,.34,PAL.wood); k.p('cone',.48,.2,0,.34,.22,.3,PAL.wood,0,0,-Math.PI/2); k.p('box',-.36,.34,0,.16,.14,.32,PAL.wood);
+    k.p('box',0,.3,0,.74,.03,.3,'#d9b98c'); k.p('cyl',-.12,.75,0,.035,.9,.035,PAL.wood); k.p('cyl',.2,.65,0,.035,.7,.035,PAL.wood);
+    k.p('box',-.12,.82,0,.03,.5,.36,PAL.coral); k.p('box',.2,.72,0,.03,.38,.3,PAL.coral); k.p('glowsphere',-.42,.46,0,.07,.07,.07,'#ffd08a'); },
+  book(k,c){ k.p('rbox',0,.06,0,.86,.1,.62,c); k.p('box',.02,.15,0,.8,.1,.58,PAL.cream); k.p('rbox',0,.23,0,.86,.06,.62,c);
+    k.p('rbox',0,.32,0,.6,.07,.44,PAL.teal,.4); k.p('box',0,.38,0,.56,.06,.4,PAL.cream,.4); k.p('rbox',0,.44,0,.6,.05,.44,PAL.teal,.4); k.p('box',.12,.38,.2,.04,.14,.02,PAL.red,.4); },
+  coin(k){ k.p('cyl',-.18,.06,.15,.6,.1,.6,PAL.gold); k.p('cyl',-.1,.15,.12,.5,.08,.5,'#d9a93a'); k.p('cyl',.15,.42,-.1,.7,.1,.7,PAL.gold,0,Math.PI/2); k.p('box',.15,.42,-.1,.17,.17,.12,'#8a6420');
+    k.p('rbox',-.28,.08,-.25,.3,.12,.18,'#d8dde2'); k.p('sphere',-.28,.16,-.25,.14,.1,.12,'#e6eaee'); },
+  compass(k){ k.p('cyl',0,.07,0,.9,.14,.9,PAL.wood); k.p('cyl',0,.15,0,.78,.03,.78,PAL.cream); k.p('torus',0,.155,0,1.15,1.15,.5,PAL.gold,0,Math.PI/2);
+    k.p('box',0,.18,0,.05,.025,.6,PAL.red,.6); k.p('sphere',0,.19,0,.06,.04,.06,PAL.ink);
+    for(let i=0;i<4;i++){const a=i*Math.PI/2; k.p('box',Math.cos(a)*.3,.17,Math.sin(a)*.3,.04,.02,.04,PAL.ink);} },
+  rice(k){ k.p('box',0,.03,0,.96,.06,.96,'#8fb3ad'); k.p('box',0,.075,0,.96,.04,.05,'#b9a27a'); k.p('box',0,.075,0,.05,.04,.96,'#b9a27a');
+    for(let i=0;i<4;i++)for(let j=0;j<4;j++){ const x=-.33+i*.22,z=-.33+j*.22; k.p('cone',x,.16,z,.09,.2,.09,(i+j)%3===0?PAL.gold:((i+j)%2?PAL.leaf1:PAL.leaf2)); } },
+  market(k,c){ for(const [x,col] of [[-.24,c],[.24,PAL.teal]]){ k.p('box',x,.15,.1,.4,.3,.24,PAL.wood); k.p('cyl',x-.18,.35,-.06,.03,.7,.03,PAL.wood); k.p('cyl',x+.18,.35,-.06,.03,.7,.03,PAL.wood);
+      k.p('box',x,.7,.02,.48,.04,.42,col,0,.22); k.p('sphere',x-.1,.34,.1,.1,.1,.1,PAL.coral); k.p('sphere',x+.08,.34,.12,.1,.1,.1,PAL.gold); k.p('glowsphere',x,.56,.22,.09,.11,.09,'#ff9a6a'); }
+    k.p('box',0,.02,.1,.95,.04,.6,'#d9c9a3'); },
+  post(k,c){ k.p('rbox',-.18,.22,-.12,.56,.44,.48,PAL.wall); k.p('hip',-.18,.6,-.12,.72,.32,.62,PAL.coral); k.p('box',-.18,.14,.125,.14,.24,.02,PAL.wood); k.p('glowbox',-.36,.28,.125,.1,.1,.02,PAL.win);
+    k.p('rbox',.25,.3,.22,.34,.16,.14,'#8a5a3c'); k.p('rbox',.45,.42,.22,.12,.16,.1,'#8a5a3c',0,0,-.4); k.p('box',.2,.42,.22,.18,.04,.03,'#3a2a20');
+    for(const [x,z] of [[.13,.17],[.13,.27],[.37,.17],[.37,.27]]) k.p('box',x,.11,z,.04,.22,.04,'#6a4430');
+    k.p('cyl',.3,.5,-.3,.03,1.0,.03,PAL.wood); k.p('box',.4,.9,-.3,.2,.13,.012,c); },
+  scroll(k){ k.p('box',-.38,.03,0,.12,.06,.4,PAL.wood); k.p('box',.38,.03,0,.12,.06,.4,PAL.wood);
+    k.p('cyl',-.36,.55,0,.04,1.05,.04,PAL.wood); k.p('cyl',.36,.55,0,.04,1.05,.04,PAL.wood); k.p('cyl',0,1.06,0,.045,.86,.045,PAL.wood,0,0,Math.PI/2);
+    k.p('box',0,.64,0,.62,.8,.02,PAL.cream); k.p('cyl',0,.22,0,.05,.7,.05,PAL.wood,0,0,Math.PI/2);
+    for(let i=0;i<5;i++) k.p('box',.2-i*.1,.68,.012,.025,.55,.005,PAL.ink); k.p('box',-.22,.36,.012,.07,.07,.005,PAL.red); },
+  pyramid(k){ [[.95,'#c5b5a7'],[.76,'#6f7fb5'],[.57,'#58a6a6'],[.38,PAL.gold]].forEach(([w,col],i)=>k.p('rbox',0,.09+i*.18,0,w,.18,w,col)); k.p('cone',0,.86,0,.22,.2,.22,PAL.gold); },
+  printing(k){ k.p('box',0,.05,0,.92,.1,.7,PAL.wood); for(let i=0;i<6;i++)for(let j=0;j<4;j++) k.p('box',-.33+i*.13,.13,-.2+j*.13,.11,.07,.11,(i+j)%3?PAL.cream:'#e8dcc4');
+    k.p('box',0,.45,-.38,.6,.5,.02,PAL.cream); for(let i=0;i<4;i++) k.p('box',.18-i*.12,.47,-.37,.03,.36,.004,PAL.ink); k.p('cyl',.3,.2,.3,.08,.3,.08,PAL.ink,0,0,Math.PI/2); },
+  cannon(k){ k.p('box',0,.18,0,.5,.14,.3,PAL.wood); k.p('torus',-.06,.18,.19,.55,.55,.6,PAL.wood); k.p('torus',-.06,.18,-.19,.55,.55,.6,PAL.wood);
+    k.p('cyl',.08,.38,0,.2,.8,.2,'#3a3330',0,0,-1.1); k.p('torus',.42,.54,0,.4,.4,.5,'#3a3330',0,0,-1.1+Math.PI/2);
+    k.p('sphere',-.3,.09,.28,.18,.18,.18,PAL.ink); k.p('sphere',-.4,.09,.16,.18,.18,.18,PAL.ink); k.p('sphere',-.34,.24,.22,.18,.18,.18,PAL.ink); k.p('glowsphere',-.34,.36,.22,.05,.05,.05,'#ffb040'); },
+  mosque(k){ k.p('rbox',0,.3,0,.72,.6,.72,PAL.cream); k.p('box',0,.62,0,.78,.05,.78,'#e7d9c5'); k.p('dome',0,.64,0,.56,.62,.56,PAL.teal); k.p('cyl',0,1.0,0,.03,.12,.03,PAL.gold); k.p('sphere',0,1.08,0,.06,.06,.06,PAL.gold);
+    k.p('box',0,.2,.365,.2,.34,.02,PAL.wood); k.p('glowbox',-.22,.38,.365,.1,.16,.02,PAL.win); k.p('glowbox',.22,.38,.365,.1,.16,.02,PAL.win);
+    k.p('cyl',.42,.62,.36,.14,1.24,.14,PAL.cream); k.p('cyl',.42,1.1,.36,.2,.05,.2,'#e7d9c5'); k.p('cone',.42,1.32,.36,.14,.36,.14,PAL.teal); },
+  vase(k){ k.p('cyl',0,.08,0,.34,.12,.34,PAL.cream); k.p('sphere',0,.44,0,.62,.66,.62,PAL.cream); k.p('torus',0,.44,0,.92,.92,.35,'#3d5fa8',0,Math.PI/2); k.p('torus',0,.26,0,.6,.6,.3,'#3d5fa8',0,Math.PI/2);
+    k.p('cyl',0,.82,0,.2,.26,.2,PAL.cream); k.p('torus',0,.95,0,.4,.4,.5,'#3d5fa8',0,Math.PI/2);
+    k.p('dome',.38,.16,.28,.34,.26,.34,PAL.cream,0,Math.PI); k.p('torus',.38,.16,.28,.48,.48,.3,'#3d5fa8',0,Math.PI/2); },
+  globe(k){ k.p('cyl',0,.04,0,.5,.08,.5,PAL.wood); k.p('cyl',0,.32,0,.05,.5,.05,PAL.wood); k.p('sphere',0,.86,0,.72,.72,.72,'#58a6a6');
+    k.p('ico',.2,.98,.22,.24,.18,.14,PAL.leaf1); k.p('ico',-.25,.8,.2,.2,.26,.12,PAL.leaf2); k.p('ico',.05,.7,-.28,.28,.16,.14,PAL.leaf1); k.p('ico',-.1,1.12,-.15,.22,.1,.2,PAL.leaf2);
+    k.p('torus',0,.86,0,1.12,1.12,.4,PAL.gold,0,0,.4); },
+  telescope(k){ for(let i=0;i<3;i++){const a=i*2.094; k.p('cyl',Math.cos(a)*.16,.3,Math.sin(a)*.16,.03,.64,.03,PAL.wood,0,-Math.sin(a)*.28,Math.cos(a)*.28);}
+    k.p('sphere',0,.62,0,.09,.09,.09,PAL.wood); k.p('cyl',.06,.78,0,.13,.8,.13,PAL.gold,0,0,-1.0); k.p('cyl',-.27,.56,0,.08,.12,.08,PAL.ink,0,0,-1.0); k.p('torus',.38,1.0,0,.45,.45,.4,PAL.wood,0,0,-1.0+Math.PI/2); },
+  corn(k){ k.p('cyl',0,.12,0,.7,.24,.7,PAL.wood); k.p('torus',0,.24,0,1.0,1.0,.4,'#9c6c48',0,Math.PI/2);
+    for(const [x,z,rz,rx] of [[-.12,0,.3,0],[.12,.05,-.3,0],[0,-.12,0,-.3]]){ k.p('cyl',x,.44,z,.14,.42,.14,'#f2c94c',0,rx,rz); k.p('cone',x*1.6,.7,z*1.6,.1,.14,.1,'#f2c94c',0,rx,rz); k.p('cone',x,.42,z+.06,.12,.4,.04,PAL.leaf1,0,rx-.2,rz); }
+    k.p('sphere',.36,.12,.3,.32,.18,.18,'#b0567a',.5); k.p('sphere',-.36,.11,.3,.22,.18,.2,'#d8b26a'); },
+  chili(k){ k.p('cyl',-.15,.14,-.1,.5,.28,.5,'#c9774a'); k.p('cyl',-.15,.29,-.1,.44,.03,.44,'#5a4030'); k.p('cyl',-.15,.48,-.1,.04,.4,.04,PAL.leaf3);
+    k.p('ico',-.15,.72,-.1,.42,.3,.42,PAL.leaf2); for(const [x,z] of [[-.3,0],[0,-.05],[-.15,.08]]) k.p('cone',x-.0,.55,z-.1,.07,.2,.07,'#d6382c',0,0,Math.PI);
+    k.p('cone',.28,.1,.3,.17,.55,.17,'#d6382c',.7,0,Math.PI/2); k.p('cyl',.08,.12,.17,.05,.12,.05,PAL.leaf3,.7,0,Math.PI/2); },
+  lighthouse(k){ k.p('cyl',0,.06,0,.6,.12,.6,PAL.stone); k.p('cyl',0,.55,0,.3,.9,.3,PAL.cream); k.p('cyl',0,.4,0,.31,.12,.31,PAL.red); k.p('cyl',0,.74,0,.31,.12,.31,PAL.red);
+    k.p('cyl',0,1.0,0,.4,.04,.4,PAL.ink); k.p('glowbox',0,1.09,0,.2,.16,.2,PAL.yellow); k.p('cone',0,1.26,0,.3,.2,.3,PAL.red); },
+  port(k){ k.p('box',.2,.06,.18,.7,.06,.22,PAL.wood); k.p('cyl',.45,.02,.28,.05,.1,.05,PAL.wood); k.p('rbox',-.2,.22,-.16,.5,.44,.42,PAL.wall); k.p('hip',-.2,.56,-.16,.6,.24,.52,PAL.teal);
+    k.p('box',-.2,.14,.055,.16,.26,.02,PAL.wood); k.p('glowbox',-.36,.3,.055,.08,.08,.02,PAL.win); k.p('box',.3,.15,-.18,.14,.14,.14,PAL.wood); k.p('box',.38,.13,-.02,.12,.12,.12,PAL.wood,.4); k.p('rbox',.3,.06,.42,.3,.08,.14,PAL.coral); },
+  hall(k){ k.p('box',0,.04,.05,.98,.08,.76,PAL.stone); k.p('rbox',0,.32,0,.9,.5,.6,PAL.wall); k.p('hip',0,.72,0,1.0,.3,.7,PAL.coral);
+    for(const x of [-.3,-.1,.1,.3]) k.p('cyl',x,.3,.34,.05,.48,.05,PAL.cream);
+    k.p('box',0,.92,.02,.26,.52,.26,PAL.cream); k.p('cyl',0,1.02,.155,.17,.02,.17,'#ffffff',0,Math.PI/2); k.p('box',0,1.04,.17,.01,.06,.005,PAL.ink); k.p('hip',0,1.28,.02,.32,.2,.32,PAL.coral);
+    k.p('glowbox',-.3,.36,.305,.1,.12,.02,PAL.win); k.p('glowbox',.3,.36,.305,.1,.12,.02,PAL.win); },
+  tower(k,c){ k.p('box',0,.25,0,.94,.5,.6,PAL.stone); k.p('box',0,.17,.305,.24,.3,.02,PAL.ink); k.p('box',0,.62,0,.66,.24,.4,PAL.red); k.p('hip',0,.86,0,.92,.26,.6,PAL.gold);
+    k.p('glowbox',-.18,.62,.205,.1,.1,.02,PAL.win); k.p('glowbox',.18,.62,.205,.1,.1,.02,PAL.win); k.p('cyl',.4,.75,.2,.025,.5,.025,PAL.wood); k.p('box',.48,.92,.2,.16,.1,.01,c); },
+  brush(k){ k.p('rbox',0,.16,0,.9,.06,.56,PAL.wood); for(const [x,z] of [[-.38,-.22],[.38,-.22],[-.38,.22],[.38,.22]]) k.p('box',x,.07,z,.05,.14,.05,PAL.wood);
+    k.p('box',-.1,.195,0,.5,.01,.36,PAL.cream); for(let i=0;i<4;i++) k.p('box',.05-i*.1,.2,0,.025,.004,.28,PAL.ink);
+    k.p('rbox',.3,.21,.12,.18,.04,.12,PAL.ink); k.p('cyl',.3,.28,-.14,.12,.2,.12,PAL.teal); k.p('cyl',.28,.44,-.14,.02,.28,.02,PAL.wood,0,0,.2); k.p('cyl',.33,.44,-.12,.02,.26,.02,PAL.wood,0,.15,-.15); }
+};
+const warned=new Set();
+function buildModel(k,name,c){ const f=MODELS[name]; if(!f){ if(!warned.has(name)){console.warn('未知的 model：'+name+'，改用小屋');warned.add(name);} MODELS.house(k,c); } else f(k,c); }
+const TREES={
+  pine(k){ k.p('cyl',0,.15,0,.08,.3,.08,PAL.wood); k.p('cone',0,.45,0,.5,.5,.5,PAL.leaf3); k.p('cone',0,.7,0,.4,.42,.4,PAL.leaf2); k.p('cone',0,.92,0,.28,.32,.28,PAL.leaf1); },
+  sakura(k){ k.p('cyl',0,.2,0,.08,.4,.08,'#8a6050'); k.p('ico',0,.6,0,.6,.5,.6,'#f2b5c6'); k.p('ico',.15,.76,.05,.4,.36,.4,'#f6c6d3'); k.p('ico',-.15,.7,-.1,.38,.3,.38,'#eea7bb'); },
+  fruit(k){ k.p('cyl',0,.2,0,.08,.4,.08,PAL.wood); k.p('ico',0,.62,0,.62,.55,.62,PAL.leaf2); for(const [x,y,z] of [[.2,.6,.2],[-.22,.7,.12],[.05,.75,-.25],[.25,.75,-.05]]) k.p('sphere',x,y,z,.09,.09,.09,'#f0a030'); },
+  palm(k){ k.p('cyl',0,.2,0,.07,.4,.07,PAL.wood,0,0,.1); k.p('cyl',.05,.55,0,.06,.36,.06,PAL.wood,0,0,.2); k.p('cyl',.12,.82,0,.05,.26,.05,PAL.wood,0,0,.25);
+    for(let i=0;i<6;i++){const a=i*1.047; k.p('ico',.16+Math.cos(a)*.22,.92,Math.sin(a)*.22,.46,.06,.14,PAL.leaf1,-a);} },
+  willow(k){ k.p('cyl',0,.2,0,.08,.4,.08,PAL.wood); k.p('cone',0,.62,0,.72,.8,.72,'#a9c98a'); k.p('ico',0,.92,0,.4,.3,.4,PAL.leaf2); },
+  round(k){ k.p('cyl',0,.2,0,.08,.4,.08,PAL.wood); k.p('ico',0,.62,0,.66,.6,.66,PAL.leaf1); k.p('ico',.12,.8,.08,.4,.36,.4,PAL.leaf2); }
+};
+
+// ---------------- islands layout
+const axial=(q,r)=>new THREE.Vector2(S3*SPACING*(q+r/2),1.5*SPACING*r);
+function ringLocal(i){ i=((i%12)+12)%12; if(i%2===0){const k=i/2,a=Math.PI/6+k*Math.PI/3; return new THREE.Vector2(1.8*Math.cos(a),-1.8*Math.sin(a));}
+  const k=(i-1)/2,a=(k+1)*Math.PI/3,rr=1.8*Math.cos(Math.PI/6); return new THREE.Vector2(rr*Math.cos(a),-rr*Math.sin(a)); }
+const all=[]; DATA.islands.forEach((d,i)=>all.push({def:d,game:true,gi:i,at:d.at,color:d.color,ground:d.ground,tree:d.tree}));
+DATA.decor.forEach(d=>all.push({def:d,game:false,at:d.at,color:d.color,ground:d.ground,tree:d.tree}));
+{ let minx=1e9,maxx=-1e9,minz=1e9,maxz=-1e9; for(const I of all){const w=axial(I.at[0],I.at[1]); I.wx=w.x; I.wz=w.y; minx=Math.min(minx,w.x);maxx=Math.max(maxx,w.x);minz=Math.min(minz,w.y);maxz=Math.max(maxz,w.y);}
+  const cx=(minx+maxx)/2, cz=(minz+maxz)/2; for(const I of all){I.cx=I.wx-cx; I.cz=I.wz-cz;} }
+const G=all.filter(I=>I.game);
+const cityRadius=Math.max(...all.map(I=>Math.hypot(I.cx,I.cz)))+R+.6;
+function bestOdd(I,dx,dz){ let best=1,bd=-1e9; for(let i=1;i<12;i+=2){const p=ringLocal(i); const d=(p.x*dx+p.y*dz); if(d>bd){bd=d;best=i;}} return best; }
+G.forEach((I,i)=>{ if(i<G.length-1){const N=G[i+1]; I.exit=bestOdd(I,N.cx-I.cx,N.cz-I.cz);} if(i>0){const P=G[i-1]; I.entry=bestOdd(I,P.cx-I.cx,P.cz-I.cz);} });
+G[0].entry=(G[0].exit+6)%12; G[G.length-1].exit=(G[G.length-1].entry+6)%12;
+function makePath(I){ const n=I.def.tiles.length; const fw=[],bw=[]; for(let k=I.entry;;k++){fw.push(k%12); if(k%12===I.exit)break;} for(let k=I.entry+12;;k--){bw.push(k%12); if(k%12===I.exit)break;}
+  const [sh,lo]=fw.length<=bw.length?[fw,bw]:[bw,fw]; const pick=((sh.length-1)*.9>=(n+1)*.55)?sh:lo;
+  const pts=pick.map(i=>{const p=ringLocal(i);return new THREE.Vector3(I.cx+p.x,TOP+.035,I.cz+p.y);}); const cum=[0]; for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+pts[i].distanceTo(pts[i-1]));
+  return {pts,cum,len:cum[cum.length-1]}; }
+function posOn(path,s,out=new THREE.Vector3()){ s=clamp(s,0,path.len); let i=0; while(i<path.cum.length-2&&path.cum[i+1]<s)i++; const seg=path.cum[i+1]-path.cum[i]; return out.lerpVectors(path.pts[i],path.pts[i+1],seg>0?(s-path.cum[i])/seg:0); }
+function tanOn(path,s,out=new THREE.Vector3()){ s=clamp(s,0,path.len); let i=0; while(i<path.cum.length-2&&path.cum[i+1]<s)i++; return out.subVectors(path.pts[i+1],path.pts[i]).normalize(); }
+G.forEach(I=>{ I.path=makePath(I); const n=I.def.tiles.length; I.slotS=[]; for(let k=0;k<=n+1;k++) I.slotS.push(k*I.path.len/(n+1)); });
+
+// ---------------- ground textures
+function groundTex(color,pattern){ const cv=document.createElement('canvas'); cv.width=cv.height=256; const g=cv.getContext('2d'); const r2=mulberry32(pattern.length*97+color.length);
+  const base=new THREE.Color(color).lerp(new THREE.Color('#fff8f4'),.72); const dark=new THREE.Color(color).lerp(new THREE.Color('#fff8f4'),.55); const lite=new THREE.Color('#fffdf8');
+  g.fillStyle='#'+base.getHexString(); g.fillRect(0,0,256,256);
+  if(pattern==='brick'){ g.strokeStyle='#'+dark.getHexString(); g.lineWidth=2; for(let y=0;y<256;y+=32){ g.beginPath(); g.moveTo(0,y); g.lineTo(256,y); g.stroke(); for(let x=((y/32)%2)*32;x<256;x+=64){ g.beginPath(); g.moveTo(x,y); g.lineTo(x,y+32); g.stroke(); } } }
+  else if(pattern==='dots'){ for(let i=0;i<420;i++){ g.fillStyle=r2()<.5?'#'+dark.getHexString():'#'+lite.getHexString(); g.globalAlpha=.6; g.beginPath(); g.arc(r2()*256,r2()*256,1+r2()*3,0,7); g.fill(); } g.globalAlpha=1; }
+  else { g.fillStyle='#'+dark.getHexString(); g.globalAlpha=.45; for(let x=-256;x<256;x+=32){ g.beginPath(); g.moveTo(x,0); g.lineTo(x+14,0); g.lineTo(x+14+256,256); g.lineTo(x+256,256); g.fill(); } g.globalAlpha=1; }
+  const t=new THREE.CanvasTexture(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; return t; }
+const stripeCv=document.createElement('canvas'); stripeCv.width=64; stripeCv.height=8; { const g=stripeCv.getContext('2d'); g.fillStyle='#ffffff'; g.fillRect(0,0,64,8); g.fillStyle='#e9dccb'; g.fillRect(0,0,32,8); }
+const stripeTex=new THREE.CanvasTexture(stripeCv); stripeTex.wrapS=THREE.RepeatWrapping; stripeTex.repeat.set(24,1); stripeTex.colorSpace=THREE.SRGBColorSpace;
+
+const tops=[]; const bodyGeos=[],bandGeos=[],pathGeos=[],shallowGeos=[],foamGeos=[];
+const lockCol=new THREE.Color('#b9ada4');
+for(const I of all){
+  const geo=new THREE.CircleGeometry(R-.05,6); geo.rotateZ(Math.PI/6); geo.rotateX(-Math.PI/2); geo.translate(I.cx,TOP,I.cz);
+  const pos=geo.attributes.position, uv=geo.attributes.uv; for(let i=0;i<pos.count;i++) uv.setXY(i,pos.getX(i)/2.2,pos.getZ(i)/2.2);
+  const mat=new THREE.MeshStandardMaterial({map:groundTex(I.color,I.ground),roughness:.92,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
+  const top=new THREE.Mesh(geo,mat); top.receiveShadow=true; top.userData.island=I; scene.add(top); tops.push(top); I.top=top;
+  const b=new THREE.CylinderGeometry(R,R,.97,6); b.translate(I.cx,.005,I.cz); bodyGeos.push(b);
+  const bd=new THREE.CylinderGeometry(R+.012,R+.012,.16,6,1,true); bd.translate(I.cx,TOP-.08,I.cz); const col=new THREE.Color(I.color).lerp(new THREE.Color('#fff8f4'),.15);
+  const ca=new Float32Array(bd.attributes.position.count*3); for(let i=0;i<bd.attributes.position.count;i++){ca[i*3]=col.r;ca[i*3+1]=col.g;ca[i*3+2]=col.b;} bd.setAttribute('color',new THREE.BufferAttribute(ca,3)); bandGeos.push(bd);
+  const p=new THREE.RingGeometry(1.66,1.94,6,1); p.rotateZ(Math.PI/6); p.rotateX(-Math.PI/2); p.translate(I.cx,TOP+.004,I.cz); pathGeos.push(p);
+  const sh=new THREE.CircleGeometry(R+.7,6); sh.rotateZ(Math.PI/6); sh.rotateX(-Math.PI/2); sh.translate(I.cx,WATER_Y+.008,I.cz); shallowGeos.push(sh);
+  const fo=new THREE.RingGeometry(R,R+.16,6,1); fo.rotateZ(Math.PI/6); fo.rotateX(-Math.PI/2); fo.translate(I.cx,WATER_Y+.014,I.cz); foamGeos.push(fo);
+}
+const merge=a=>BufferGeometryUtils.mergeGeometries(a.map(g=>{ if(!g.attributes.color){ const ca=new Float32Array(g.attributes.position.count*3).fill(1); g.setAttribute('color',new THREE.BufferAttribute(ca,3)); } if(g.index) g=g.toNonIndexed(); return g; }));
+{ const m=new THREE.Mesh(merge(bodyGeos),new THREE.MeshStandardMaterial({color:PAL.curb,roughness:.9})); m.receiveShadow=true; m.castShadow=true; scene.add(m); }
+{ const m=new THREE.Mesh(merge(bandGeos),new THREE.MeshStandardMaterial({vertexColors:true,map:stripeTex,roughness:.85})); scene.add(m); }
+{ const m=new THREE.Mesh(merge(pathGeos),new THREE.MeshStandardMaterial({color:PAL.path,roughness:.9,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1})); m.receiveShadow=true; scene.add(m); }
+{ const m=new THREE.Mesh(merge(shallowGeos),new THREE.MeshBasicMaterial({color:'#c4e6e3',transparent:true,opacity:.5,depthWrite:false})); scene.add(m); }
+{ const m=new THREE.Mesh(merge(foamGeos),new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.55,depthWrite:false})); scene.add(m); }
+
+// ---------------- island contents
+const lampPos=[]; const lineSegs=[];
+function insideHex(x,z,ap){ for(let k=0;k<6;k++){const a=k*Math.PI/3; if(x*Math.cos(a)-z*Math.sin(a)>ap) return false;} return true; }
+for(const I of all){
+  I.handles=[]; const ox=I.cx, oz=I.cz;
+  // lamps + bushes (small kit)
+  for(let k=0;k<6;k++){ const p=ringLocal(k*2), d=p.clone().normalize();
+    const lx=ox+d.x*1.98, lz=oz+d.y*1.98; const h=small.begin(lx,lz,0,1); small.p('cyl',0,.22,0,.025,.44,.025,PAL.ink); small.p('glowsphere',0,.46,0,.075,.075,.075,'#fff1c8'); small.p('cone',0,.52,0,.09,.06,.09,PAL.ink); I.handles.push(h); lampPos.push([lx,lz]);
+    const t=new THREE.Vector2(-d.y,d.x); for(const sgn of [-1,1]){ const bx=ox+d.x*1.52+t.x*sgn*.26, bz=oz+d.y*1.52+t.y*sgn*.26; const hb=small.begin(bx,bz,0,1); small.p('ico',0,.07,0,.2,.15,.2,sgn>0?PAL.leaf1:PAL.leaf2); small.p('sphere',.05,.13,.03,.04,.04,.04,sgn>0?PAL.pink:PAL.yellow); I.handles.push(hb); } }
+  // trees at 5 corners (skip back corner k=1 → (0,-1.8))
+  const treesAt=[]; for(const k of [0,2,3,4,5]){ const p=ringLocal(k*2).normalize().multiplyScalar(1.36); treesAt.push(p); const h=kit.begin(ox+p.x,oz+p.y,rnd()*6,.5+rnd()*.12); TREES[I.tree](kit); I.handles.push(h); }
+  // plot candidates
+  const n=I.game?I.def.tiles.filter(t=>t.type!=='surprise'&&t.type!=='rest').length:5;
+  const gsz=I.game?THREE.MathUtils.lerp(.62,.46,clamp((n-3)/4,0,1)):.56; const cands=[];
+  for(let j=-8;j<=8;j++)for(let i=-8;i<=8;i++){ const x=i*gsz+((j&1)?gsz/2:0), z=j*gsz*.87; if(!insideHex(x,z,1.22))continue; if(Math.hypot(x,z+.58)<.8)continue; if(treesAt.some(t=>Math.hypot(t.x-x,t.y-z)<.4))continue; cands.push({x,z,used:false}); }
+  I.gsz=gsz;
+  // landmark
+  if(I.game){ const lm=kit.begin(ox,oz-.58,0,1.15); buildModel(kit,I.def.landmark,I.color); I.handles.push(lm); I.landmark=lm;
+    const fl=kit.begin(ox,oz-.58,0,1.15); kit.p('cyl',.56,.75,-.1,.03,1.5,.03,PAL.wood); kit.p('box',.69,1.4,-.1,.24,.16,.015,PAL.coral); kit.p('glowsphere',-.5,.08,.42,.08,.08,.08,'#ffd08a'); kit.p('glowsphere',.5,.08,.42,.08,.08,.08,'#ffd08a'); kit.p('glowsphere',0,.08,.52,.08,.08,.08,'#ffd08a'); I.flag=fl; }
+  else { const lm=kit.begin(ox,oz-.58,.2,1.0); MODELS[['hall','pagoda','house'][all.indexOf(I)%3]](kit,I.color); I.handles.push(lm); }
+  // tiles' plots
+  if(I.game){ I.tiles=I.def.tiles.map((t,ti)=>({def:t,ti,slot:ti+1})); for(const T of I.tiles){ const p=posOn(I.path,I.slotS[T.slot]); T.pos=p.clone(); T.tan=tanOn(I.path,I.slotS[T.slot]);
+      if(T.def.type==='surprise'||T.def.type==='rest') continue;
+      const lx=p.x-ox, lz=p.z-oz; let best=null,bd=1e9; for(const c of cands){ if(c.used)continue; const d=Math.hypot(c.x-lx*.62,c.z-lz*.62); if(d<bd){bd=d;best=c;} }
+      if(!best) continue; best.used=true; const px=ox+best.x, pz=oz+best.z; const sz=gsz*.86;
+      const site=kit.begin(px,pz,0,sz); for(const [x,z] of [[-.42,-.42],[.42,-.42],[-.42,.42],[.42,.42]]) kit.p('cyl',x,.14,z,.05,.28,.05,PAL.wood);
+      kit.p('box',0,.2,.42,.84,.04,.02,PAL.coral); kit.p('box',0,.2,-.42,.84,.04,.02,PAL.coral); kit.p('box',.42,.2,0,.02,.04,.84,PAL.coral); kit.p('box',-.42,.2,0,.02,.04,.84,PAL.coral); kit.p('cone',0,.12,0,.08,.24,.08,PAL.wood); kit.p('box',0,.01,0,.86,.02,.86,'#d8c6ae');
+      const mh=kit.begin(px,pz,(rnd()-.5)*.6,sz); buildModel(kit,T.def.model,I.color);
+      T.site=site; T.model=mh; I.handles.push(site,mh); lineSegs.push(p.x,TOP+.012,p.z,px,TOP+.012,pz); } }
+  else { for(let i=0;i<5&&cands.length;i++){ const c=cands[Math.floor(rnd()*cands.length)]; if(c.used)continue; c.used=true; const h=kit.begin(ox+c.x,oz+c.z,(rnd()-.5)*.8,gsz*.8); (i%2?TREES[I.tree]:MODELS.house)(kit,I.color); I.handles.push(h);} }
+}
+// bridges & gates
+const woodMat=new THREE.MeshStandardMaterial({color:PAL.wood,roughness:.8});
+G.forEach((I,i)=>{ if(i===G.length-1) return; const N=G[i+1];
+  const A=I.path.pts[I.path.pts.length-1].clone(), B=N.path.pts[0].clone(); const dir=B.clone().sub(A).setY(0).normalize();
+  const A2=A.clone().addScaledVector(dir,-.1), B2=B.clone().addScaledVector(dir,.1); const L=A2.distanceTo(B2); const yaw=Math.atan2(-dir.z,dir.x);
+  const mk=(isA)=>{ const piv=new THREE.Group(); piv.position.set((isA?A2:B2).x,TOP+.03,(isA?A2:B2).z); piv.rotation.y=yaw; const fold=new THREE.Group(); piv.add(fold); const gs=[];
+    for(let k=0;k<9;k++){ if(isA?k>4:k<=4) continue; const t=(k+.5)/9; const x=isA?L*t:-(L-L*t); const g=new THREE.BoxGeometry(L/9*.86,.035,.36); g.translate(x,Math.sin(Math.PI*t)*.07,0); gs.push(g);
+      if(k%2===0){ for(const z of [-.19,.19]){ const r=new THREE.BoxGeometry(.03,.12,.03); r.translate(x,Math.sin(Math.PI*t)*.07+.06,z); gs.push(r);} } }
+    const rl=new THREE.BoxGeometry(L*(isA?5:4)/9,.025,.025); for(const z of [-.19,.19]){ const r=rl.clone(); r.translate(isA?L*2.5/9:-L*2/9,.15,z); gs.push(r);}
+    const m=new THREE.Mesh(BufferGeometryUtils.mergeGeometries(gs),woodMat); m.castShadow=true; m.receiveShadow=true; fold.add(m); scene.add(piv); return fold; };
+  const fa=mk(true), fb=mk(false); fa.rotation.z=1.2217; fb.rotation.z=-1.2217;
+  const at=A.clone().addScaledVector(dir,-.16); const arch=kit.begin(at.x,at.z,Math.atan2(dir.x,dir.z),1);
+  kit.p('rbox',-.27,.36,0,.08,.72,.08,PAL.coral); kit.p('rbox',.27,.36,0,.08,.72,.08,PAL.coral); kit.p('rbox',0,.74,0,.68,.08,.1,PAL.coral); kit.p('box',0,.62,0,.5,.03,.05,PAL.eave);
+  const sEl=document.createElement('div'); sEl.className='gsign'; sEl.textContent='🚧 關卡門'; const so=new CSS2DObject(sEl); so.position.set(at.x,TOP+1.05,at.z); scene.add(so);
+  I.bridge={fa,fb,arch,sign:so,signEl:sEl,A,B,dir,yaw}; I.handles.push(arch); });
+// start dock & finish podium
+{ const I=G[0], p=I.path.pts[0], d=new THREE.Vector3(p.x-I.cx,0,p.z-I.cz).normalize(); const h=kit.begin(p.x+d.x*.45,p.z+d.z*.45,Math.atan2(d.x,d.z),1,TOP-.04);
+  kit.p('box',0,0,0,.4,.05,.7,PAL.wood); for(const x of [-.17,.17]) for(const z of [-.3,.3]) kit.p('cyl',x,-.3,z,.05,.6,.05,PAL.wood);
+  const el=document.createElement('div'); el.className='gsign okd'; el.textContent='起點'; const o=new CSS2DObject(el); o.position.set(p.x+d.x*.5,TOP+.45,p.z+d.z*.5); scene.add(o); }
+{ const I=G[G.length-1], p=I.path.pts[I.path.pts.length-1], d=new THREE.Vector3(p.x-I.cx,0,p.z-I.cz).normalize(); const h=kit.begin(p.x+d.x*.42,p.z+d.z*.42,Math.atan2(d.x,d.z),1,TOP-.04);
+  kit.p('cyl',0,.04,0,.6,.12,.6,PAL.cream); kit.p('cyl',0,.12,0,.44,.06,.44,PAL.gold); kit.p('cyl',0,.55,0,.03,.9,.03,PAL.wood); kit.p('box',.12,.92,0,.22,.14,.012,PAL.coral); I.goal=h;
+  const el=document.createElement('div'); el.className='gsign okd'; el.textContent='🏁 終點'; const o=new CSS2DObject(el); o.position.set(p.x+d.x*.45,TOP+1.2,p.z+d.z*.45); scene.add(o); }
+// sea decorations
+for(const [x,z,s] of [[-15,9,1],[16,-6,.8],[13,11,.7],[-12,-10,.9]]){ const h=kit.begin(x,z,rnd()*3,s,WATER_Y); kit.p('ico',0,.1,0,1.2,.5,1,PAL.stone); kit.p('ico',.2,.3,.1,.5,.3,.5,PAL.leaf2); TREES.pine(kit); }
+{ const h=kit.begin(-14.4,9.3,0,1.1,WATER_Y+.3); MODELS.lighthouse(kit); }
+for(const [x,z,r] of [[10,14,.4],[-9,15,-.9],[17,3,1.2]]){ const h=kit.begin(x,z,r,.8,WATER_Y-.02); kit.p('rbox',0,.1,0,.9,.18,.32,PAL.cream); kit.p('cyl',0,.55,0,.03,.8,.03,PAL.wood); kit.p('prism',.12,.55,0,.5,.6,.03,'#ffffff',0,0,Math.PI/2); }
+kit.build(); small.build();
+// dashed lines tile→plot
+{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(lineSegs,3)); const l=new THREE.LineSegments(g,new THREE.LineDashedMaterial({color:'#a8805c',dashSize:.06,gapSize:.05,transparent:true,opacity:.75})); l.computeLineDistances(); scene.add(l); }
+// light pools
+const pools=new THREE.InstancedMesh(new THREE.CircleGeometry(.55,20).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:'#ffc777',transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}),lampPos.length);
+lampPos.forEach(([x,z],i)=>{ pools.setMatrixAt(i,_m.makeTranslation(x-.0,TOP+.012,z)); }); pools.frustumCulled=false; scene.add(pools);
+// tile markers
+const allTiles=G.flatMap(I=>I.tiles.map(T=>(T.I=I,T)));
+const tileMesh=new THREE.InstancedMesh(new RoundedBoxGeometry(.42,.06,.42,2,.02),new THREE.MeshStandardMaterial({roughness:.7}),allTiles.length);
+allTiles.forEach((T,i)=>{ T.mi=i; const y=Math.atan2(T.tan.x,T.tan.z); tileMesh.setMatrixAt(i,_m.compose(_v.set(T.pos.x,TOP+.035,T.pos.z),_q.setFromEuler(_e.set(0,y,0)),_s.set(1,1,1)));
+  T.baseCol=new THREE.Color(T.I.color).lerp(new THREE.Color('#fff8f4'),T.def.type==='surprise'?.65:.35); tileMesh.setColorAt(i,T.baseCol); });
+tileMesh.receiveShadow=true; tileMesh.castShadow=true; scene.add(tileMesh);
+function tileColor(T,col){ tileMesh.setColorAt(T.mi,col); tileMesh.instanceColor.needsUpdate=true; }
+
+// ---------------- labels
+for(const I of G){ const el=document.createElement('div'); el.className='ilabel'; const o=new CSS2DObject(el); o.position.set(I.cx,TOP+.25,I.cz+R*.98); scene.add(o); I.labelEl=el; }
+for(const T of allTiles){ const el=document.createElement('div'); el.className='tlabel'; const o=new CSS2DObject(el); o.position.set(T.pos.x,TOP+.36,T.pos.z); scene.add(o); T.labelObj=o; T.labelEl=el; }
+
+// ---------------- sky, water, lights
+const skyU={uTop:{value:new THREE.Color()},uHorizon:{value:new THREE.Color()},uSun:{value:new THREE.Color()},uSunDir:{value:new THREE.Vector3(0,1,0)},uNight:{value:0}};
+const sky=new THREE.Mesh(new THREE.SphereGeometry(170,32,16),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,fog:false,uniforms:skyU,
+  vertexShader:`varying vec3 vDir; void main(){ vDir=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+  fragmentShader:`uniform vec3 uTop,uHorizon,uSun,uSunDir; uniform float uNight; varying vec3 vDir;
+  float h(vec3 p){ return fract(sin(dot(p,vec3(12.9898,78.233,45.164)))*43758.5453); }
+  void main(){ vec3 d=normalize(vDir); vec3 c=mix(uHorizon,uTop,smoothstep(-.02,.55,d.y)); float s=max(dot(d,normalize(uSunDir)),0.); c+=uSun*pow(s,18.)*.35*(1.-uNight);
+    float st=h(floor(d*180.)); if(st>.9965 && d.y>.04) c+=vec3(1.)*uNight*(st-.9965)/.0035; gl_FragColor=vec4(c,1.);
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+  }`}));
+sky.renderOrder=-1; scene.add(sky);
+const waterU=THREE.UniformsUtils.merge([THREE.UniformsLib.fog,{uTime:{value:0},uShallow:{value:new THREE.Color('#a4d4da')},uDeep:{value:new THREE.Color('#6fa9b8')}}]);
+const water=new THREE.Mesh(new THREE.CircleGeometry(160,64).rotateX(-Math.PI/2),new THREE.ShaderMaterial({uniforms:waterU,fog:true,
+  vertexShader:`varying vec3 vW;
+  #include <fog_pars_vertex>
+  void main(){ vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; vec4 mvPosition=viewMatrix*w; gl_Position=projectionMatrix*mvPosition;
+  #include <fog_vertex>
+  }`,
+  fragmentShader:`uniform float uTime; uniform vec3 uShallow,uDeep; varying vec3 vW;
+  #include <fog_pars_fragment>
+  void main(){ float d=length(vW.xz); float w=sin(vW.x*.35+uTime*.4)*sin(vW.z*.3-uTime*.3)*.5+.5; float w2=sin((vW.x+vW.z)*.9+uTime*.7)*.5+.5;
+    vec3 c=mix(uShallow,uDeep,smoothstep(10.,60.,d)); c+=w*.035+w2*.02; float sp=step(.992,sin(vW.x*3.1+uTime*1.3)*sin(vW.z*2.7-uTime*1.1)); c+=sp*.1;
+    gl_FragColor=vec4(c,1.);
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+    #include <fog_fragment>
+  }`}));
+water.position.y=WATER_Y; scene.add(water);
+const hemi=new THREE.HemisphereLight(0xeef6fa,0x8f8270,1.3); scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xfff1de,2.8); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-20,right:20,top:22,bottom:-22,near:1,far:90}); sun.shadow.bias=-.0006; sun.shadow.normalBias=.045; sun.shadow.radius=3; scene.add(sun); scene.add(sun.target);
+const fill=new THREE.DirectionalLight(0xbfd6ff,.35); fill.position.set(-20,15,-10); scene.add(fill);
+
+// ---------------- terrain, background trees, mountains, clouds
+const camDir=new THREE.Vector3(.24,.33,.87).normalize(); const cdx=camDir.x/Math.hypot(camDir.x,camDir.z), cdz=camDir.z/Math.hypot(camDir.x,camDir.z);
+function terrainH(x,z){ const d=Math.hypot(x,z); const ring=smooth(24,50,d); let n=0,a=1,f=.035; for(let o=0;o<4;o++){n+=a*noise.noise(x*f,z*f);a*=.5;f*=2;}
+  let h=-2.4+ring*(5.5+n*3.2)+(1-ring)*n*.3; const dd=(x*cdx+z*cdz)/(d+1e-6); h-=smooth(.1,.65,dd)*ring*5; h=Math.round(h*2.2)/2.2*.6+h*.4; return h; }
+{ const g=new THREE.PlaneGeometry(170,170,160,160); g.rotateX(-Math.PI/2); const p=g.attributes.position; const cols=new Float32Array(p.count*3);
+  const stops=[[-.3,'#8fb3ad'],[.3,'#d9c9a3'],[1.5,'#aec493'],[3,'#a3b986'],[5,'#6f8a62'],[99,'#b2a38d']].map(([h,c])=>[h,new THREE.Color(c)]);
+  for(let i=0;i<p.count;i++){ const h=terrainH(p.getX(i),p.getZ(i)); p.setY(i,h); const c=stops.find(s=>h<s[0])[1]; cols[i*3]=c.r;cols[i*3+1]=c.g;cols[i*3+2]=c.b; }
+  g.setAttribute('color',new THREE.BufferAttribute(cols,3)); g.computeVertexNormals(); const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,flatShading:true,roughness:.95})); m.receiveShadow=true; scene.add(m); }
+{ const con=BufferGeometryUtils.mergeGeometries([new THREE.ConeGeometry(.5,.9,6).translate(0,.75,0),new THREE.ConeGeometry(.38,.7,6).translate(0,1.15,0),new THREE.ConeGeometry(.12,.5,5).translate(0,.25,0)]);
+  const brd=BufferGeometryUtils.mergeGeometries([new THREE.IcosahedronGeometry(.5,0).translate(0,.9,0),new THREE.IcosahedronGeometry(.38,0).translate(.3,.75,.1),new THREE.IcosahedronGeometry(.36,0).translate(-.28,.8,-.1),new THREE.CylinderGeometry(.08,.1,.6,5).translate(0,.3,0).toNonIndexed()]);
+  const mat=new THREE.MeshStandardMaterial({flatShading:true,roughness:.9}); const N=isMobile?900:1900; const r2=mulberry32(99);
+  const sets=[[con,[]],[brd,[]]]; let tries=0; while(sets[0][1].length+sets[1][1].length<N && tries<N*8){ tries++;
+    const a=r2()*Math.PI*2, rr=22+r2()*30, x=Math.cos(a)*rr, z=Math.sin(a)*rr; const h=terrainH(x,z); if(h<.3)continue; const dd=(x*cdx+z*cdz)/rr;
+    if(dd>.5&&r2()<.85)continue; if(dd<-.86&&r2()<.5)continue; const s=.8+r2()*.8; sets[h>3.2||r2()<.4?0:1][1].push([x,h-.05,z,s,r2()*6,r2()]); }
+  const tc=[new THREE.Color('#6f8a62'),new THREE.Color('#7e9a6a'),new THREE.Color('#93ad74'),new THREE.Color('#a8b77c')];
+  for(const [geo,arr] of sets){ const im=new THREE.InstancedMesh(geo,mat,arr.length); arr.forEach((t,i)=>{ im.setMatrixAt(i,_m.compose(_v.set(t[0],t[1],t[2]),_q.setFromEuler(_e.set(0,t[4],0)),_s.set(t[3],t[3]*(.9+t[5]*.3),t[3]))); im.setColorAt(i,tc[Math.floor(t[5]*4)]); }); im.frustumCulled=false; scene.add(im); } }
+const mountains=[];
+[[95,'#8a9a86',.35,6],[115,'#9aa8a0',.55,9],[140,'#b1b9b4',.72,12]].forEach(([rad,col,mix,hgt],ri)=>{ const segs=128, pos=[], idx=[];
+  for(let i=0;i<=segs;i++){ const a=i/segs*Math.PI*2, x=Math.cos(a)*rad, z=Math.sin(a)*rad; const dd=(x*cdx+z*cdz)/rad; const hh=(2+hgt*(.5+.5*noise.noise(Math.cos(a)*2+ri*5,Math.sin(a)*2)))*(1-smooth(.2,.8,dd)*.85); pos.push(x,-1,z,x,hh,z); if(i<segs){const b=i*2; idx.push(b,b+1,b+2,b+1,b+3,b+2);} }
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setIndex(idx); const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:col,fog:false,side:THREE.DoubleSide})); m.renderOrder=-.5; scene.add(m); mountains.push({m,base:new THREE.Color(col),mix}); });
+const clouds=[]; { const cm=new THREE.MeshStandardMaterial({color:0xffffff,roughness:1,transparent:true,opacity:.92}); const r2=mulberry32(55);
+  for(let i=0;i<12;i++){ const g=new THREE.Group(); const n=3+Math.floor(r2()*3); for(let j=0;j<n;j++){ const s=new THREE.Mesh(GEO.sphere,cm); s.scale.setScalar(2+r2()*2.2); s.position.set(j*1.6-n*.8,r2()*.6,r2()*1.2); g.add(s);} g.position.set(-90+r2()*180,16+r2()*8,-70+r2()*90); g.userData.v=.3+r2()*.4; scene.add(g); clouds.push(g);} }
+
+// ---------------- chibi (instanced walkers + player)
+const CG={ leg:new THREE.BoxGeometry(.035,.1,.035).translate(0,-.05,0), arm:new THREE.BoxGeometry(.026,.09,.026).translate(0,-.045,0), body:new THREE.CapsuleGeometry(.05,.07,4,8),
+  head:new THREE.SphereGeometry(.072,14,10), hair:new THREE.SphereGeometry(.076,14,7,0,Math.PI*2,0,Math.PI/2), shadow:new THREE.CircleGeometry(.1,16).rotateX(-Math.PI/2) };
+const walkers=[]; { const r2=mulberry32(321); for(const I of all){ const n=I.game?4:3; for(let k=0;k<n;k++) walkers.push({I,s:r2()*10.8,v:(.32+r2()*.08)*(r2()<.5?-1:1),ph:r2(),off:(r2()-.5)*.12,shirt:[PAL.coral,PAL.aqua,PAL.blue,PAL.leaf2,PAL.pink,PAL.gold][Math.floor(r2()*6)],hair:['#3a2a20','#5a3a28','#211d1d','#8a5a3c'][Math.floor(r2()*4)],vis:0}); } }
+const WN=walkers.length; const wm={}; const wmat=new THREE.MeshStandardMaterial({roughness:.78});
+for(const [k,c] of [['leg',2],['arm',2],['body',1],['head',1],['hair',1]]){ const im=new THREE.InstancedMesh(CG[k],wmat,WN*c); im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.frustumCulled=false; im.castShadow=false; scene.add(im); wm[k]=im; }
+wm.shadow=new THREE.InstancedMesh(CG.shadow,new THREE.MeshBasicMaterial({color:'#3a2a20',transparent:true,opacity:.22,depthWrite:false}),WN); wm.shadow.frustumCulled=false; scene.add(wm.shadow);
+walkers.forEach((w,i)=>{ const sk=new THREE.Color('#f2c9a6'); wm.head.setColorAt(i,sk); wm.body.setColorAt(i,new THREE.Color(w.shirt)); wm.hair.setColorAt(i,new THREE.Color(w.hair));
+  for(let j=0;j<2;j++){ wm.leg.setColorAt(i*2+j,new THREE.Color('#4a4258')); wm.arm.setColorAt(i*2+j,new THREE.Color(w.shirt)); } });
+const ringPaths=new Map(); for(const I of all){ const pts=[]; for(let i=0;i<=12;i++){const p=ringLocal(i);pts.push(new THREE.Vector3(I.cx+p.x,TOP+.03,I.cz+p.y));} const cum=[0]; for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+pts[i].distanceTo(pts[i-1])); ringPaths.set(I,{pts,cum,len:cum[cum.length-1]}); }
+const _W=new THREE.Matrix4(),_P=new THREE.Matrix4(),_t1=new THREE.Vector3(),_t2=new THREE.Vector3();
+function partM(out,W,x,y,z,rx){ return out.copy(W).multiply(_P.compose(_v.set(x,y,z),_q.setFromEuler(_e.set(rx,0,0)),_s.set(1,1,1))); }
+function updateWalkers(dt,t){ const camD=camera.position.distanceTo(controls.target); const sc=clamp(camD/20,1,1.45);
+  walkers.forEach((w,i)=>{ const want=(!w.I.game||w.I.gi<S.unlocked)?1:0; w.vis+=(want-w.vis)*Math.min(1,dt*3); const rp=ringPaths.get(w.I);
+    if(!RM) w.s=((w.s+w.v*dt)%rp.len+rp.len)%rp.len; posOn(rp,w.s,_t1); tanOn(rp,w.s,_t2); if(w.v<0)_t2.negate();
+    const nx=-_t2.z, nz=_t2.x; _t1.x+=nx*w.off; _t1.z+=nz*w.off; const ph=t*9+w.ph*20; const bob=Math.abs(Math.sin(ph))*.012; const s=Math.max(w.vis,1e-4)*sc;
+    _W.compose(_v.set(_t1.x,_t1.y+bob,_t1.z),_q.setFromEuler(_e.set(0,Math.atan2(_t2.x,_t2.z),0)),_s.set(s,s,s)); const sw=RM?0:Math.sin(ph);
+    wm.leg.setMatrixAt(i*2,partM(_m,_W,-.025,.1,0,sw*.55)); wm.leg.setMatrixAt(i*2+1,partM(_m,_W,.025,.1,0,-sw*.55));
+    wm.arm.setMatrixAt(i*2,partM(_m,_W,-.068,.21,0,-sw*.45)); wm.arm.setMatrixAt(i*2+1,partM(_m,_W,.068,.21,0,sw*.45));
+    wm.body.setMatrixAt(i,partM(_m,_W,0,.165,0,0)); wm.head.setMatrixAt(i,partM(_m,_W,0,.275,0,0)); wm.hair.setMatrixAt(i,partM(_m,_W,0,.285,-.004,-.25));
+    wm.shadow.setMatrixAt(i,_m.compose(_v.set(_t1.x,TOP+.008,_t1.z),_q.identity(),_s.set(s,s,s))); });
+  for(const k in wm) wm[k].instanceMatrix.needsUpdate=true; }
+const LOOKS=[{id:'student',icon:'🧢',name:'學童'},{id:'farmer',icon:'👒',name:'農夫'},{id:'worker',icon:'⛑️',name:'工人'},{id:'scholar',icon:'🥼',name:'研究員'},{id:'traveler',icon:'🧳',name:'旅客'},{id:'officer',icon:'🦺',name:'公務員'}];
+function makePlayer(look,name){ const g=new THREE.Group(), inner=new THREE.Group(); g.add(inner); const M=c=>new THREE.MeshStandardMaterial({color:c,roughness:.78});
+  const shirt={student:PAL.blue,farmer:PAL.leaf2,worker:PAL.aqua,scholar:'#f6f2ec',traveler:PAL.coral,officer:PAL.cream}[look]||PAL.blue;
+  const add=(geo,c,x,y,z,parent=inner)=>{const m=new THREE.Mesh(geo,M(c)); m.position.set(x,y,z); m.castShadow=true; parent.add(m); return m;};
+  const legL=new THREE.Group(),legR=new THREE.Group(),armL=new THREE.Group(),armR=new THREE.Group(); legL.position.set(-.025,.1,0); legR.position.set(.025,.1,0); armL.position.set(-.068,.21,0); armR.position.set(.068,.21,0);
+  inner.add(legL,legR,armL,armR); add(CG.leg,'#4a4258',0,0,0,legL); add(CG.leg,'#4a4258',0,0,0,legR); add(CG.arm,shirt,0,0,0,armL); add(CG.arm,shirt,0,0,0,armR);
+  add(CG.body,shirt,0,.165,0); add(CG.head,'#f2c9a6',0,.275,0); const hr=add(CG.hair,'#3a2a20',0,.285,-.004); hr.rotation.x=-.25;
+  for(const x of [-.025,.025]) add(new THREE.SphereGeometry(.009,8,6),PAL.ink,x,.28,.066);
+  if(look==='student'){ add(new THREE.SphereGeometry(.08,14,7,0,Math.PI*2,0,Math.PI/2),'#f2c94c',0,.3,0); const b=add(new THREE.CylinderGeometry(.06,.06,.01,14),'#f2c94c',0,.305,.05); add(new THREE.BoxGeometry(.08,.09,.04),PAL.red,0,.17,-.06); }
+  if(look==='farmer'){ add(new THREE.ConeGeometry(.15,.07,16),'#d9b77a',0,.36,0); }
+  if(look==='worker'){ add(new THREE.SphereGeometry(.082,14,7,0,Math.PI*2,0,Math.PI/2),'#f0a030',0,.3,0); add(new THREE.CylinderGeometry(.095,.095,.008,16),'#f0a030',0,.3,0); }
+  if(look==='scholar'){ add(new THREE.BoxGeometry(.06,.07,.02),PAL.teal,.06,.15,.05); add(new THREE.TorusGeometry(.016,.004,6,12),PAL.ink,-.025,.282,.07); add(new THREE.TorusGeometry(.016,.004,6,12),PAL.ink,.025,.282,.07); }
+  if(look==='traveler'){ add(new THREE.BoxGeometry(.07,.09,.035),PAL.teal,.11,.05,0); add(new THREE.BoxGeometry(.03,.012,.01),PAL.ink,.11,.1,0); }
+  if(look==='officer'){ add(new THREE.BoxGeometry(.105,.08,.105),PAL.green,0,.18,0); add(new THREE.BoxGeometry(.02,.026,.006),PAL.yellow,.02,.19,.054); }
+  const sh=new THREE.Mesh(CG.shadow,new THREE.MeshBasicMaterial({color:'#3a2a20',transparent:true,opacity:.22,depthWrite:false})); sh.position.y=-.02; g.add(sh);
+  const cv=document.createElement('canvas'); cv.width=cv.height=128; const c=cv.getContext('2d'); c.fillStyle='#fff'; c.beginPath(); c.arc(64,64,56,0,7); c.fill(); c.lineWidth=10; c.strokeStyle=PAL.coral; c.stroke();
+  c.fillStyle=PAL.ink; c.font='900 60px "Noto Sans TC","Microsoft JhengHei",sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText((name||'?').slice(0,1),64,68);
+  const tex=new THREE.CanvasTexture(cv); tex.colorSpace=THREE.SRGBColorSpace; const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false})); sp.scale.setScalar(.13); sp.position.y=.48; sp.renderOrder=5; g.add(sp);
+  g.scale.setScalar(1.6); scene.add(g); return {g,inner,legL,legR,armL,armR}; }
+let player=null;
+
+// ---------------- confetti
+const CONF=48; const conf=new THREE.InstancedMesh(new THREE.BoxGeometry(.05,.012,.03),new THREE.MeshStandardMaterial({roughness:.8}),CONF); conf.frustumCulled=false; conf.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(conf);
+const confP=[]; { const cs=[PAL.coral,PAL.yellow,PAL.aqua,PAL.pink,PAL.leaf1,PAL.blue]; for(let i=0;i<CONF;i++){ conf.setColorAt(i,new THREE.Color(cs[i%6])); conf.setMatrixAt(i,_m.makeScale(0,0,0)); confP.push({p:new THREE.Vector3(),v:new THREE.Vector3(),r:0,life:0}); } }
+function burst(at){ if(RM) return; for(const c of confP){ c.p.copy(at); const a=crand()*6.28, sp=.8+crand()*1.4; c.v.set(Math.cos(a)*sp*.6,1.6+crand()*1.6,Math.sin(a)*sp*.6); c.r=crand()*6; c.life=1.3; } }
+function updateConf(dt){ let any=false; confP.forEach((c,i)=>{ if(c.life<=0){ conf.setMatrixAt(i,_m.makeScale(0,0,0)); return; } any=true; c.life-=dt; c.v.y-=5*dt; c.p.addScaledVector(c.v,dt); c.r+=dt*8; if(c.p.y<TOP+.02){c.p.y=TOP+.02;c.v.set(0,0,0);} const s=clamp(c.life*2,0,1); conf.setMatrixAt(i,_m.compose(c.p,_q.setFromEuler(_e.set(c.r,c.r*.7,0)),_s.set(s,s,s))); }); conf.instanceMatrix.needsUpdate=true; }
+
+// ---------------- time of day
+const KF=[[0,'1e2c58','3f4f80','b4c2ff',1.15,'94a2d8','64566a',1.85,1,'5a88b2'],[300,'26365f','4c5688','b8c4ff',1.0,'96a4da','66586c',1.85,1,'5c8ab4'],[360,'7f8fc4','f6c3a6','ffb48a',1.3,'f3c6b5','6b5a5a',1.1,.55,'8fb7c4'],
+ [450,'a9d1ea','fbe6d3','ffe2c4',2.4,'eaf2f6','8a7a68',1.25,0,'9fcfd6'],[720,'9fd0ec','f4eee3','fff1de',2.9,'eef6fa','8f8270',1.35,0,'a9d8db'],[960,'a6cfe6','f8e7d2','ffe3c0',2.5,'f1efe8','8a7a66',1.25,0,'9fcbd2'],
+ [1065,'8b8fc4','f7b98f','ff9f6a',1.8,'f6d2bc','7d6660',1.2,.3,'93a9bd'],[1140,'5a5e9e','d99aa6','ff9a7a',1.3,'c0b2e0','655868',1.35,.75,'6a7cab'],[1260,'22325f','445488','c0ccff',1.2,'98a8dc','685a6e',1.9,1,'5a88b2'],[1440,'1e2c58','3f4f80','b4c2ff',1.15,'94a2d8','64566a',1.85,1,'5a88b2']]
+ .map(r=>({m:r[0],top:new THREE.Color('#'+r[1]),hor:new THREE.Color('#'+r[2]),sun:new THREE.Color('#'+r[3]),sunI:r[4],hs:new THREE.Color('#'+r[5]),hg:new THREE.Color('#'+r[6]),hi:r[7],night:r[8],water:new THREE.Color('#'+r[9])}));
+let curMin=400, nightV=0; const _ca=new THREE.Color(),_cb=new THREE.Color();
+function applyTime(min){ curMin=min; const mm=((min%1440)+1440)%1440; let i=0; while(i<KF.length-2&&KF[i+1].m<=mm)i++; const a=KF[i],b=KF[i+1],k=(mm-a.m)/(b.m-a.m); const L=(x,y)=>_ca.copy(x).lerp(y,k);
+  skyU.uTop.value.copy(L(a.top,b.top)); skyU.uHorizon.value.copy(L(a.hor,b.hor)); skyU.uSun.value.copy(L(a.sun,b.sun)); scene.fog.color.copy(skyU.uHorizon.value);
+  sun.color.copy(L(a.sun,b.sun)); sun.intensity=a.sunI+(b.sunI-a.sunI)*k; hemi.color.copy(L(a.hs,b.hs)); hemi.groundColor.copy(L(a.hg,b.hg)); hemi.intensity=a.hi+(b.hi-a.hi)*k;
+  nightV=a.night+(b.night-a.night)*k; skyU.uNight.value=nightV; waterU.uShallow.value.copy(L(a.water,b.water)); waterU.uDeep.value.copy(L(a.water,b.water)).lerp(_cb.set('#4f7f96'),.45);
+  MAT.glow.emissiveIntensity=nightV*3.2; pools.material.opacity=.35*nightV;
+  for(const mt of mountains) mt.m.material.color.copy(mt.base).lerp(skyU.uHorizon.value,mt.mix+nightV*.15).multiplyScalar(1-nightV*.35);
+  const tq=Math.round(mm/10)*10; const t=clamp((tq-360)/720,0,1); const az=Math.PI*(.15+.7*t), el=.35+Math.sin(t*Math.PI)*.75;
+  const dir=new THREE.Vector3(Math.cos(az)*Math.cos(el),Math.sin(el),.55*Math.cos(el)+.35).normalize(); sun.position.copy(dir).multiplyScalar(40); skyU.uSunDir.value.copy(dir); }
+
+// ---------------- camera helpers
+let follow=false, fly=null; const followOff=new THREE.Vector3(2.4,3.8,5.0);
+function panoDist(){ const asp=camera.aspect; let d=asp>1.3?28.5:asp>.8?38:56; const hh=Math.atan(Math.tan(THREE.MathUtils.degToRad(16))*Math.min(asp,1.6)); d=Math.max(d,cityRadius/Math.tan(hh)*1.02); return Math.min(d,68); }
+function panoPose(){ const d=panoDist(); const off=camDir.clone().multiplyScalar(d); if(!isMobile&&document.body.classList.contains('cardOpen')) off.x+=0; return {pos:off,target:new THREE.Vector3(0,0,0)}; }
+function flyTo(pos,target,ms=800){ follow=false; if(RM){ camera.position.copy(pos); controls.target.copy(target); fly=null; return; } fly={t:0,dur:ms/1000,p0:camera.position.clone(),t0:controls.target.clone(),p1:pos.clone(),t1:target.clone()}; }
+function flyIsland(I){ const t=new THREE.Vector3(I.cx,TOP,I.cz); if(!isMobile&&document.body.classList.contains('cardOpen')) t.x-=1.5; flyTo(t.clone().add(new THREE.Vector3(2.75,5.3,6.2)),t); }
+function goPano(){ const p=panoPose(); flyTo(p.pos,p.target); }
+renderer.domElement.addEventListener('pointerdown',e=>{ fly=null; follow=false; downAt=[e.clientX,e.clientY]; });
+let downAt=null; const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
+renderer.domElement.addEventListener('pointerup',e=>{ if(!downAt) return; if(Math.hypot(e.clientX-downAt[0],e.clientY-downAt[1])>6){downAt=null;return;} downAt=null;
+  const r=renderer.domElement.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); ray.setFromCamera(ndc,camera); const hit=ray.intersectObjects(tops)[0];
+  if(hit){ const I=hit.object.userData.island; flyIsland(I); if(I.game){ toast(I.gi<S.unlocked?`第 ${I.gi+1} 島・${I.def.name}`:`第 ${I.gi+1} 島還沒解鎖`); } } });
+
+// ---------------- tween system
+const tweens=[];
+function tween(ms,fn,ease=x=>x){ return new Promise(res=>{ if(RM||ms<=0){fn(1);res();return;} tweens.push({t:0,dur:ms/1000,fn,ease,res}); }); }
+const wait=ms=>tween(ms,()=>{});
+function updateTweens(dt){ for(let i=tweens.length-1;i>=0;i--){ const w=tweens[i]; w.t+=dt; const k=Math.min(1,w.t/w.dur); w.fn(w.ease(k)); if(k>=1){tweens.splice(i,1); w.res();} } }
+
+// ---------------- audio
+let AC=null; function ac(){ if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } if(AC&&AC.state==='suspended') AC.resume(); return AC; }
+function tone(f,t0,dur,vol=.25,type='triangle'){ if(S.muted) return; const a=ac(); if(!a) return; const o=a.createOscillator(), g=a.createGain(); o.type=type; o.frequency.value=f; const t=a.currentTime+t0;
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+.01); g.gain.exponentialRampToValueAtTime(.001,t+dur); o.connect(g).connect(a.destination); o.start(t); o.stop(t+dur+.05); }
+const sfx={ ok(){tone(523.25,0,.3);tone(659.25,.09,.3);tone(783.99,.18,.4);}, bad(){tone(330,0,.18,.12,'sine');tone(262,.12,.25,.12,'sine');}, step(){tone(880,0,.06,.05,'sine');},
+  fan(){[523,659,784,1047].forEach((f,i)=>tone(f,i*.12,.45,.2));}, flip(){tone(660,0,.08,.08,'sine');tone(990,.07,.12,.08,'sine');} };
+
+// ---------------- state & persistence
+const S={ pid:'', name:'', look:'student', isl:0, slot:0, unlocked:1, tiles:{}, built:{}, stars:0, times:{}, muted:false, seenHelp:false, big:false, answered:0, firstTry:0, finished:false, started:false };
+function save(){ try{ localStorage.setItem(lsKey,JSON.stringify(S)); }catch(e){} }
+function load(){ try{ const s=JSON.parse(localStorage.getItem(lsKey)||'null'); return s&&s.started?s:null; }catch(e){ return null; } }
+const saved=load();
+const curI=()=>G[S.isl];
+const tState=T=>S.tiles[T.def.id];
+const isDone=T=>{const s=tState(T); return s==='done'||s==='seen';};
+
+// ---------------- world state sync
+function applyWorld(instant=true){
+  for(const I of G){ const locked=I.gi>=S.unlocked; I.top.material.color.copy(locked?lockCol:_c.set('#ffffff')); for(const h of I.handles) hTint(h,lockCol,locked?.6:0);
+    for(const T of I.tiles){ tileColor(T,locked?_c.copy(T.baseCol).lerp(lockCol,.6):T.baseCol); if(T.model){ const b=S.built[T.def.id]; hScale(T.model,b?1:0); hScale(T.site,b?0:1); } }
+    const passed=I.gi<S.unlocked-1 || (I.gi===G.length-1&&S.finished); if(I.flag) hScale(I.flag,passed?1:0);
+    if(I.bridge){ const open=I.gi<S.unlocked-1; I.bridge.fa.rotation.z=open?0:1.2217; I.bridge.fb.rotation.z=open?0:-1.2217; } }
+  updateLabels(); }
+function updateLabels(){
+  for(const I of G){ const locked=I.gi>=S.unlocked; const cur=I.gi===S.isl; I.labelEl.textContent=locked?`? ${String(I.gi+1).padStart(2,'0')}`:`${String(I.gi+1).padStart(2,'0')} ${I.def.name}`;
+    I.labelEl.className='ilabel'+(locked?' lock':'')+(cur&&S.started?' cur':'')+(!cur&&!locked&&S.started?' dim':'');
+    if(I.bridge){ const passed=I.gi<S.unlocked-1; const rem=I.tiles.filter(T=>!isDone(T)).length; I.bridge.signEl.className='gsign'+(passed?' okd':''); I.bridge.signEl.textContent=passed?'✅ 已通過':(rem?`🚧 還差 ${rem} 格`:'🚧 關卡門'); I.bridge.sign.visible=passed||I.gi===S.isl; }
+    for(const T of I.tiles){ const st=tState(T); const num=NUMS[T.ti]||(T.ti+1); const nx=nextSlotInfo(); const isNext=S.started&&I.gi===S.isl&&nx.slot===T.slot;
+      T.labelEl.textContent=num+(st==='done'?' ⭐':st==='review'?' 🚩':st==='seen'?' ✨':''); T.labelEl.className='tlabel'+(st==='done'?' done':st==='review'?' rev':'')+(isNext?' next':''); T.labelObj.visible=S.started&&I.gi===S.isl; } }
+  const I=curI(); const tot=I.tiles.length, d=I.tiles.filter(isDone).length;
+  $('#tcWhere').textContent=S.finished?'全部島嶼完成！':`第 ${I.gi+1} 島・${I.def.name}　${d}/${tot} 格`;
+  $('#tcBar').style.width=(S.finished?100:Math.round(d/tot*100))+'%';
+  $('#starChip').textContent='⭐ '+S.stars; $('#btnMute').textContent=S.muted?'🔇':'🔊';
+  const nx=nextSlotInfo(); $('#goT').textContent=nx.title; $('#goS').textContent=nx.sub; }
+function nextSlotInfo(){ const I=curI(); const n=I.tiles.length; if(S.finished) return {slot:-1,title:'結業證書',sub:'再看一次你的成績'};
+  if(S.slot===n+1){ if(I.gi<S.unlocked-1) return {slot:'bridge',title:'過橋',sub:`前往第 ${I.gi+2} 島・${G[I.gi+1].def.name}`};
+    const rev=I.tiles.filter(T=>tState(T)==='review'); if(rev.length) return {slot:rev[0].slot,title:'回去複習',sub:`還差 ${rev.length} 格（🚩）`}; return {slot:'gate',title:'關卡門挑戰',sub:'3 題答對 2 題就過關'}; }
+  for(let s=S.slot+1;s<=n;s++){ const T=I.tiles[s-1]; if(!isDone(T)) return {slot:s,title:'前進',sub:`下一格：${NUMS[T.ti]} ${T.def.title}`}; }
+  return {slot:n+1,title:'前進',sub:'走到關卡門'}; }
+
+// ---------------- player movement
+function slotPos(I,slot,out=new THREE.Vector3()){ posOn(I.path,I.slotS[slot],out); out.y=TOP+.07; return out; }
+function placePlayer(){ if(!player) return; const I=curI(); slotPos(I,S.slot,player.g.position); const t=tanOn(I.path,I.slotS[Math.min(S.slot,I.tiles.length)]); player.g.rotation.y=Math.atan2(t.x,t.z); }
+async function hop(from,to){ const yaw=Math.atan2(to.x-from.x,to.z-from.z); player.g.rotation.y=yaw; sfx.step();
+  await tween(220,k=>{ player.g.position.lerpVectors(from,to,k); player.g.position.y=from.y+(to.y-from.y)*k+Math.sin(Math.PI*k)*.35; player.legL.rotation.x=player.legR.rotation.x=-.6*Math.sin(Math.PI*k); player.armL.rotation.z=.6*Math.sin(Math.PI*k); player.armR.rotation.z=-.6*Math.sin(Math.PI*k); });
+  await tween(110,k=>{ const s=k<.5?1-.3*k:.85+.3*(k-.5); player.inner.scale.set(1+(1-s)*.6,s,1+(1-s)*.6); }); player.inner.scale.set(1,1,1); }
+async function walkPath(I,s0,s1){ const n=Math.max(1,Math.round(Math.abs(s1-s0)/.7)); const a=new THREE.Vector3(), b=new THREE.Vector3();
+  for(let i=0;i<n;i++){ posOn(I.path,s0+(s1-s0)*i/n,a).setY(TOP+.07); posOn(I.path,s0+(s1-s0)*(i+1)/n,b).setY(TOP+.07);
+    // follow the polyline: split hop if it crosses a corner
+    const mid=posOn(I.path,s0+(s1-s0)*(i+.5)/n,new THREE.Vector3()).setY(TOP+.07); const straight=a.clone().lerp(b,.5); if(mid.distanceTo(straight)>.06){ await hop(a,mid); await hop(mid,b); } else await hop(a,b); } }
+async function moveToSlot(slot){ const I=curI(); follow=true; if(slot<S.slot){ // ferry back along the path
+    toast('🚤 搭小渡船回去複習'); const s0=I.slotS[S.slot], s1=I.slotS[slot]; await tween(700,k=>{ posOn(I.path,s0+(s1-s0)*k,player.g.position).setY(TOP+.07+Math.sin(k*Math.PI)*.06); const t=tanOn(I.path,s0+(s1-s0)*k); player.g.rotation.y=Math.atan2(-t.x,-t.z); },easeIO); }
+  else await walkPath(I,I.slotS[S.slot],I.slotS[slot]); S.slot=slot; save(); updateLabels(); }
+async function crossBridge(){ const I=curI(), N=G[I.gi+1]; follow=true; const A=slotPos(I,I.tiles.length+1), B=slotPos(N,0); const pts=[A];
+  for(const t of [.33,.66]){ const p=A.clone().lerp(B,t); p.y=TOP+.07+Math.sin(Math.PI*t)*.07; pts.push(p);} pts.push(B); for(let i=0;i<pts.length-1;i++) await hop(pts[i],pts[i+1]);
+  S.isl=N.gi; S.slot=0; save(); updateLabels(); toast(`第 ${N.gi+1} 島・${N.def.name}`); }
+
+// ---------------- cards
+const card=$('#card'); let actResolve=null, cardKind='';
+card.addEventListener('click',e=>{ const b=e.target.closest('[data-act]'); if(!b||b.disabled) return; ac(); if(actResolve){ const r=actResolve; actResolve=null; r({act:b.dataset.act,el:b}); } });
+function waitAct(){ return new Promise(r=>actResolve=r); }
+async function waitFor(...acts){ for(;;){ const r=await waitAct(); if(acts.includes(r.act)) return r; } }
+function openCard(html,kind='info'){ cardKind=kind; card.innerHTML=html; card.classList.add('open'); card.classList.toggle('tall',kind==='quiz'||kind==='gate'); document.body.classList.add('cardOpen'); card.scrollTop=0;
+  const f=card.querySelector('[data-primary]')||card.querySelector('.opt'); setTimeout(()=>f?.focus({preventScroll:true}),30); }
+function closeCard(){ card.classList.remove('open','tall'); document.body.classList.remove('cardOpen'); cardKind=''; setTimeout(()=>$('#go').focus({preventScroll:true}),30); }
+const brow=(I,extra)=>`<div class="eyebrow">第 ${I.gi+1} 島・${esc(I.def.name)}${extra?'　·　'+extra:''}</div>`;
+const numFx=s=>esc(s).replace(/(\d[\d,]*(?:～\d+)?\s*(?:年|天|世紀|次)?)/g,'<em>$1</em>');
+function lessonHTML(T){ const d=T.def; return `${brow(T.I,'知識格 '+NUMS[T.ti])}<h2>${esc(d.title)}</h2><p class="lead">${esc(d.text)}</p>
+  ${d.points?.length?`<div class="facts">${d.points.slice(0,3).map(p=>`<div class="fact">${numFx(p)}</div>`).join('')}</div>`:''}<div class="ref">📖 講義 ${esc(d.ref)}</div>
+  <div class="actions"><button class="btn primary" data-act="quiz" data-primary>我懂了，來挑戰！</button></div>`; }
+async function quizCard(T,mode,extra=''){ const q=T.def.q; let order=q.options.map((_,i)=>i); if(mode!=='tile'){ for(let i=order.length-1;i>0;i--){const j=Math.floor(crand()*(i+1));[order[i],order[j]]=[order[j],order[i]];} }
+  const label={tile:T.def.type==='quiz'?'挑戰格 '+NUMS[T.ti]:'知識格 '+NUMS[T.ti]+' 挑戰',review:'🚩 複習 '+NUMS[T.ti],gate:'關卡門',practice:'練習'}[mode];
+  openCard(`${brow(T.I,label)}${extra}<h2 class="qtext">${esc(q.q)}</h2><div class="opts">${order.map((oi,di)=>`<button class="opt" data-act="opt${oi}"><kbd>${di+1}</kbd><span>${esc(q.options[oi])}</span></button>`).join('')}</div><div class="fb"></div><div class="actions"></div>`,'quiz');
+  const fb=card.querySelector('.fb'), acts=card.querySelector('.actions'); let tries=0; const maxT=mode==='gate'?1:2;
+  for(;;){ const {act,el}=await waitAct(); if(!act.startsWith('opt')) continue; const pick=+act.slice(3); tries++;
+    if(pick===q.answer){ el.classList.add('ok'); card.querySelectorAll('.opt').forEach(b=>b.disabled=true); sfx.ok();
+      fb.innerHTML=`<div class="msg ok"><b>${tries===1?'答對了！':'答對了，好厲害！'}</b> ${esc(q.why)}</div>`; break; }
+    el.classList.add('bad'); el.disabled=true; sfx.bad();
+    if(tries<maxT){ fb.innerHTML=`<div class="msg hint"><b>差一點點！</b> 提示：${esc(q.hint)}</div>`; continue; }
+    card.querySelectorAll('.opt').forEach(b=>{ b.disabled=true; if(b.dataset.act==='opt'+q.answer) b.classList.add('ok'); });
+    fb.innerHTML=`<div class="msg bad"><b>正解是「${esc(q.options[q.answer])}」。</b> ${esc(q.why)}${mode==='gate'?'':'<br>這格先插上 🚩，過關前再回來挑戰一次。'}</div>`; tries=0; break; }
+  acts.innerHTML=`<button class="btn primary" data-act="next" data-primary>繼續 ▶</button>`; setTimeout(()=>acts.querySelector('button').focus({preventScroll:true}),30);
+  return tries; }
+async function buildTile(T){ S.built[T.def.id]=true; if(!T.model) return; hScale(T.site,0); burst(T.model.origin.clone().setY(TOP+.2));
+  await tween(500,k=>{ const s=k<.6?easeOut(k/.6)*1.12:1.12-.12*easeIO((k-.6)/.4); hScale(T.model,s); }); hScale(T.model,1); }
+async function runTile(T){ const d=T.def;
+  if(d.type==='surprise'){ sfx.flip(); openCard(`<div class="flip">${brow(T.I,'驚喜卡 '+NUMS[T.ti])}<h2>✨ ${esc(d.title)}</h2><p class="lead">${esc(d.text)}</p><div class="ref">📖 講義 ${esc(d.ref)}・${esc(d.tag||'延伸學習')}</div><div class="actions"><button class="btn primary" data-act="next" data-primary>收下這張卡 ▶</button></div></div>`);
+    await waitFor('next'); S.tiles[d.id]='seen'; save(); closeCard(); updateLabels(); return; }
+  const wasRev=tState(T)==='review';
+  if(d.type==='lesson'&&!wasRev){ openCard(lessonHTML(T)); await waitFor('quiz'); }
+  const res=await quizCard(T,wasRev?'review':'tile'); S.answered++; if(res===1&&!wasRev) S.firstTry++;
+  if(res>0){ S.tiles[d.id]='done'; S.stars++; updateLabels(); buildTile(T); submitScore(); } else { S.tiles[d.id]='review'; tileColor(T,_c.set('#ffd75a')); }
+  save(); updateLabels(); await waitFor('next'); closeCard(); if(res>0) tileColor(T,T.baseCol); }
+async function runGate(I){ const pool=I.tiles.filter(T=>T.def.q).slice(); for(let i=pool.length-1;i>0;i--){const j=Math.floor(crand()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+  const of=I.def.gate?.of||3, pass=I.def.gate?.pass||2; const qs=pool.slice(0,of);
+  openCard(`${brow(I,'關卡門')}<h2>🚧 關卡門挑戰</h2><p class="lead">本島的格子都蓋好了！從本島題目抽 ${of} 題，答對 ${pass} 題，橋就會放下。選項的順序會打亂喔。</p><div class="actions"><button class="btn primary" data-act="start" data-primary>開始挑戰</button></div>`);
+  await waitFor('start'); let ok=0;
+  for(let i=0;i<qs.length;i++){ const r=await quizCard(qs[i],'gate',`<div class="small" style="margin-top:4px">第 ${i+1} / ${qs.length} 題　·　已答對 ${ok} 題</div>`); if(r>0) ok++; await waitFor('next'); }
+  if(ok>=pass){ closeCard(); await passIsland(I,ok,qs.length); }
+  else { openCard(`${brow(I,'關卡門')}<h2>休息一下再來</h2><p class="lead">這次答對 ${ok} / ${qs.length} 題，還差一點點。回頭看看剛剛的解說，再挑戰一次就好！</p><div class="actions"><button class="btn primary" data-act="next" data-primary>好</button></div>`); await waitFor('next'); closeCard(); } }
+async function passIsland(I,ok,of){ S.times[I.gi]=new Date().toISOString(); const last=I.gi===G.length-1; if(!last) S.unlocked=Math.max(S.unlocked,I.gi+2); else S.finished=true; save(); submitScore(); sfx.fan();
+  if(I.flag) tween(600,k=>hScale(I.flag,easeOut(k)));
+  burst(new THREE.Vector3(I.cx,TOP+.5,I.cz-.58));
+  if(I.bridge){ const b=I.bridge; await tween(700,k=>{ b.fa.rotation.z=1.2217*(1-easeOut(k)); b.fb.rotation.z=-1.2217*(1-easeOut(k)); }); }
+  if(!last){ const N=G[I.gi+1]; N.top.material.color.set('#ffffff'); const hs=N.handles; hs.forEach((h,i)=>setTimeout(()=>hTint(h,lockCol,0),RM?0:i*30));
+    N.tiles.forEach((T,i)=>setTimeout(()=>tileColor(T,T.baseCol),RM?0:i*80)); const m0=curMin, m1=N.def.time; tween(2000,k=>applyTime(m0+(m1-m0)*k)); }
+  updateLabels(); const built=I.tiles.filter(T=>tState(T)==='done').length, q=I.tiles.filter(T=>T.def.q).length; const rev=I.tiles.filter(T=>tState(T)==='review');
+  openCard(`${brow(I,'過關')}<div class="ring"><div class="badge">🏅</div><div><h2 style="margin:0">第 ${I.gi+1} 島完成！</h2><div class="small">關卡門答對 ${ok} / ${of} 題</div></div></div>
+    <div class="statrow"><div class="stat"><b>${built}</b><span>蓋好的模型</span></div><div class="stat"><b>${q}</b><span>本島題目</span></div><div class="stat"><b>${S.stars}</b><span>總星星</span></div></div>
+    <div class="actions"><button class="btn primary" data-act="next" data-primary>${last?'前往結業典禮 🎓':`過橋，前往第 ${I.gi+2} 島 ▶`}</button></div>`);
+  await waitFor('next'); closeCard(); if(last) await ceremony(); else await crossBridge(); }
+async function ceremony(){ updateLabels(); $('#goWrap').classList.add('hidden'); const m0=curMin; await tween(2000,k=>applyTime(m0+(1260-m0)*k));
+  const d=panoDist()*.85, h=camDir.y*d; follow=false; fly=null; if(!RM){ await tween(8000,k=>{ const a=k*Math.PI*2+Math.atan2(camDir.x,camDir.z); camera.position.set(Math.sin(a)*d*.94,h,Math.cos(a)*d*.94); controls.target.set(0,0,0); }); }
+  goPano(); showCert(); $('#goWrap').classList.remove('hidden'); updateLabels(); }
+
+// ---------------- main action
+let busy=false;
+async function go(){ if(busy||cardKind||!S.started) return; ac(); busy=true; $('#go').disabled=true; follow=true;
+  try{ const I=curI(), n=I.tiles.length;
+    if(S.finished){ showCert(); return; }
+    const nx=nextSlotInfo();
+    if(nx.slot==='bridge'){ await crossBridge(); return; }
+    if(nx.slot==='gate'){ await runGate(I); return; }
+    if(typeof nx.slot==='number'){ await moveToSlot(nx.slot); if(nx.slot<=n){ await runTile(I.tiles[nx.slot-1]); } else { await atExit(I); } }
+  } finally { busy=false; $('#go').disabled=false; updateLabels(); } }
+async function atExit(I){ const rev=I.tiles.filter(T=>tState(T)==='review'); updateLabels();
+  if(rev.length){ openCard(`${brow(I,'關卡門')}<h2>還差 ${rev.length} 格！</h2><p class="lead">有 ${rev.length} 格插著 🚩：${rev.map(T=>NUMS[T.ti]+' '+esc(T.def.title)).join('、')}。<br>先回去把它們答對，橋才會放下。</p><div class="actions"><button class="btn primary" data-act="next" data-primary>搭渡船回去複習 🚤</button></div>`);
+    await waitFor('next'); closeCard(); await moveToSlot(rev[0].slot); await runTile(rev[0]); return; }
+  await runGate(I); }
+
+// ---------------- overlays: start, help, panel, cert, confirm
+$('#srcLine').textContent='內容來源：'+DATA.meta.source;
+$('#looks').innerHTML=LOOKS.map(l=>`<button class="look" data-look="${l.id}" aria-pressed="${l.id===S.look}"><span>${l.icon}</span>${l.name}</button>`).join('');
+$('#looks').addEventListener('click',e=>{ const b=e.target.closest('.look'); if(!b) return; S.look=b.dataset.look; document.querySelectorAll('.look').forEach(x=>x.setAttribute('aria-pressed',x===b)); });
+if(saved) $('#btnContinue').classList.remove('hidden');
+function begin(){ $('#start').classList.add('hidden'); $('#titleCard').classList.remove('hidden'); $('#tr').classList.remove('hidden'); $('#goWrap').classList.remove('hidden');
+  if(player) scene.remove(player.g); player=makePlayer(S.look,S.name); applyWorld(); applyTime(S.finished?1260:curI().def.time); placePlayer(); follow=true; updateLabels();
+  if(!S.seenHelp) $('#help').classList.remove('hidden'); else $('#go').focus(); }
+$('#btnStart').addEventListener('click',()=>{ ac(); const name=($('#nameIn').value||'').trim().slice(0,10); if(!name){ toast('先輸入你的名字'); $('#nameIn').focus(); return; } const look=S.look; const keepMuted=S.muted;
+  const pid=(saved&&saved.name===name&&saved.pid)?saved.pid:newPid();
+  Object.assign(S,{pid,name,look,isl:0,slot:0,unlocked:1,tiles:{},built:{},stars:0,times:{},answered:0,firstTry:0,finished:false,started:true,seenHelp:saved?.seenHelp||false,muted:keepMuted}); save(); begin(); });
+$('#btnContinue').addEventListener('click',()=>{ ac(); Object.assign(S,saved,{started:true}); if(!S.pid) S.pid=newPid(); if(!S.name) S.name='小探險家'; save(); begin(); });
+$('#btnHelpOk').addEventListener('click',()=>{ $('#help').classList.add('hidden'); S.seenHelp=true; save(); $('#go').focus(); });
+$('#btnHelp').addEventListener('click',()=>$('#help').classList.remove('hidden'));
+$('#btnPano').addEventListener('click',()=>goPano());
+$('#btnMute').addEventListener('click',()=>{ S.muted=!S.muted; save(); updateLabels(); });
+$('#go').addEventListener('click',go);
+function panelHTML(){ const rows=G.map(I=>{ const d=I.tiles.filter(isDone).length; return `<span>${String(I.gi+1).padStart(2,'0')} ${I.gi<S.unlocked?esc(I.def.name):'？'}</span><span class="pb"><i style="width:${Math.round(d/I.tiles.length*100)}%"></i></span><span>${d}/${I.tiles.length}</span>`; }).join('');
+  const rev=allTiles.filter(T=>tState(T)==='review'); const acc=S.answered?Math.round(S.firstTry/S.answered*100):0;
+  return `<div class="eyebrow">家長／老師面板</div><h2>學習進度</h2><div class="statrow"><div class="stat"><b>${S.stars}</b><span>星星</span></div><div class="stat"><b>${acc}%</b><span>第一次就答對</span></div><div class="stat"><b>${rev.length}</b><span>待複習</span></div></div>
+  <div class="prog">${rows}</div>
+  <h3 style="margin:14px 0 6px">待複習</h3>${rev.length?rev.map(T=>`<div class="row" style="align-items:center;margin:4px 0"><span style="flex:1">🚩 第 ${T.I.gi+1} 島 ${NUMS[T.ti]} ${esc(T.def.title)}</span><button class="btn" data-practice="${T.def.id}">練習</button></div>`).join(''):'<p class="small">目前沒有待複習的題目。</p>'}
+  <div class="row"><button class="btn" id="pBig">${S.big?'✓ ':''}大字模式</button><button class="btn" id="pMute">${S.muted?'🔇 已靜音':'🔊 聲音開啟'}</button><button class="btn" id="pReset">重設進度</button></div>
+  <p class="small">內容來源：${esc(DATA.meta.source)}。對象：${esc(DATA.meta.audience)}。進度只存在這台裝置的瀏覽器裡。</p>
+  <div class="row"><button class="btn primary" id="pClose" style="flex:1">關閉</button></div>`; }
+function openPanel(){ $('#panelBody').innerHTML=panelHTML(); $('#panel').classList.remove('hidden'); $('#pClose').focus(); }
+$('#btnPanel').addEventListener('click',openPanel);
+$('#panel').addEventListener('click',async e=>{ const t=e.target;
+  if(t.id==='pClose'||t===$('#panel')) $('#panel').classList.add('hidden');
+  if(t.id==='pBig'){ S.big=!S.big; document.body.classList.toggle('big',S.big); save(); openPanel(); }
+  if(t.id==='pMute'){ S.muted=!S.muted; save(); updateLabels(); openPanel(); }
+  if(t.id==='pReset'){ $('#confirmBody').innerHTML=`<h2>重設全部進度？</h2><p>星星、蓋好的模型和待複習清單都會清掉，回到第 1 島重新開始。這個動作不能復原。</p><div class="row"><button class="btn" id="cNo" style="flex:1">取消</button><button class="btn primary" id="cYes" style="flex:1">重設</button></div>`; $('#confirm').classList.remove('hidden'); $('#cNo').focus(); }
+  const pid=t.dataset?.practice; if(pid&&!busy&&!cardKind){ $('#panel').classList.add('hidden'); const T=allTiles.find(x=>x.def.id===pid); busy=true;
+    try{ const r=await quizCard(T,'practice'); if(r>0){ S.tiles[pid]='done'; S.stars++; buildTile(T); tileColor(T,T.I.gi<S.unlocked?T.baseCol:_c.copy(T.baseCol).lerp(lockCol,.6)); } save(); updateLabels(); await waitFor('next'); closeCard(); } finally{ busy=false; } } });
+$('#confirm').addEventListener('click',e=>{ if(e.target.id==='cNo'||e.target===$('#confirm')) $('#confirm').classList.add('hidden');
+  if(e.target.id==='cYes'){ try{ localStorage.removeItem(lsKey); }catch(_){} location.reload(); } });
+function showCert(){ const rev=allTiles.filter(T=>tState(T)==='review'); const fmt=iso=>{ if(!iso) return '—'; const d=new Date(iso); return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
+  $('#certBody').innerHTML=`<div class="eyebrow">${esc(DATA.meta.subject)}</div><h2>結業證書</h2><div class="who">${esc(S.name)}</div>
+    <p>完成了「${esc(DATA.meta.title)}」全部 ${G.length} 座島，<br>共獲得 <b style="font-family:var(--num);font-style:italic;font-size:22px;color:var(--coral)">${S.stars}</b> 顆星星。</p>
+    <table>${G.map(I=>`<tr><td>${String(I.gi+1).padStart(2,'0')} ${esc(I.def.name)}</td><td style="text-align:right">${fmt(S.times[I.gi])}</td></tr>`).join('')}</table>
+    ${rev.length?`<p class="small" style="text-align:left">待複習：${rev.map(T=>esc(T.def.title)).join('、')}</p>`:'<p class="small">沒有待複習的題目，全部過關！</p>'}
+    <p class="small">內容來源：${esc(DATA.meta.source)}</p>
+    <div class="row"><button class="btn" id="ceAgain" style="flex:1">再玩一次（保留模型）</button><button class="btn" id="ceReset" style="flex:1">全部重來</button><button class="btn primary" id="ceClose" style="flex:1">關閉</button></div>`;
+  $('#cert').classList.remove('hidden'); $('#ceClose').focus(); }
+$('#cert').addEventListener('click',e=>{ const id=e.target.id; if(id==='ceClose') $('#cert').classList.add('hidden');
+  if(id==='ceReset'){ $('#cert').classList.add('hidden'); $('#pReset')?.click(); $('#confirmBody').innerHTML=`<h2>全部重來？</h2><p>星星和模型都會清掉，回到第 1 島。</p><div class="row"><button class="btn" id="cNo" style="flex:1">取消</button><button class="btn primary" id="cYes" style="flex:1">重來</button></div>`; $('#confirm').classList.remove('hidden'); }
+  if(id==='ceAgain'){ $('#cert').classList.add('hidden'); Object.assign(S,{isl:0,slot:0,unlocked:1,tiles:{},stars:0,times:{},answered:0,firstTry:0,finished:false}); save(); applyWorld(); applyTime(G[0].def.time); placePlayer(); follow=true; updateLabels(); } });
+// ---------------- leaderboard (Google Apps Script web app)
+const LB=(DATA.meta.leaderboard||'').trim();
+function newPid(){ try{ if(crypto.randomUUID) return crypto.randomUUID(); }catch(e){} return Array.from({length:4},()=>Math.floor(crand()*1e9).toString(36)).join('-'); }
+function scorePayload(){ return {id:S.pid,name:S.name,stars:S.stars,islands:S.finished?G.length:S.unlocked-1,accuracy:S.answered?Math.round(S.firstTry/S.answered*100):0,finished:S.finished}; }
+async function submitScore(){ if(!LB||!S.pid||!S.name) return; const body=JSON.stringify(scorePayload());
+  try{ await fetch(LB,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body}); }
+  catch(e){ try{ await fetch(LB,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body}); }catch(_){} } }
+async function openBoard(){ const B=$('#boardBody'); $('#board').classList.remove('hidden');
+  const head=`<div class="eyebrow">${esc(DATA.meta.title)}</div><h2>🏆 排行榜</h2><p class="small">先比過關的島數，再比星星，最後比第一次就答對的比例。</p>`;
+  const foot=`<div class="row"><button class="btn" id="bRefresh" style="flex:1">重新整理</button><button class="btn primary" id="bClose" style="flex:1">關閉</button></div>`;
+  if(!LB){ B.innerHTML=head+`<p class="lead">排行榜還沒設定好。請家長依照說明部署 Google 試算表，再把網址填進 DATA.meta.leaderboard。</p>`+foot; $('#bClose').focus(); return; }
+  B.innerHTML=head+`<p class="small">讀取中…</p>`+foot; $('#bClose').focus();
+  try{ if(S.started) await submitScore(); const r=await fetch(LB+(LB.includes('?')?'&':'?')+'t='+Date.now()); const rows=await r.json(); const mine=(S.pid||'').slice(0,6);
+    const tbl=rows.length?`<table class="lb"><thead><tr><th>名次</th><th>名字</th><th class="num">島</th><th class="num">⭐</th><th class="num">答對率</th></tr></thead><tbody>${rows.map((x,i)=>`<tr class="${x.id===mine?'me':''}"><td class="rk">${i+1}</td><td>${esc(x.name)}${x.finished?' 🎓':''}</td><td class="num">${x.islands}/${G.length}</td><td class="num">${x.stars}</td><td class="num">${x.accuracy}%</td></tr>`).join('')}</tbody></table>`:'<p class="lead">還沒有人上榜，快來當第一名！</p>';
+    B.innerHTML=head+tbl+foot; }
+  catch(e){ B.innerHTML=head+`<p class="lead">排行榜暫時連不上，請檢查網路後按「重新整理」。</p>`+foot; }
+  $('#bClose').focus(); }
+$('#btnBoard').addEventListener('click',openBoard); $('#btnBoard2').addEventListener('click',openBoard);
+$('#board').addEventListener('click',e=>{ if(e.target.id==='bClose'||e.target===$('#board')) $('#board').classList.add('hidden'); if(e.target.id==='bRefresh') openBoard(); });
+let toastT=0; function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1800); }
+
+// ---------------- keyboard
+addEventListener('keydown',e=>{ if(e.target.tagName==='INPUT') return; const overlayOpen=[...document.querySelectorAll('.overlay')].some(o=>!o.classList.contains('hidden'));
+  if(e.key==='Escape'){ if(overlayOpen){ document.querySelectorAll('.overlay').forEach(o=>{ if(o.id!=='start') o.classList.add('hidden'); }); return; } if(cardKind==='info'){ const p=card.querySelector('[data-primary]'); p?.click(); } return; }
+  if(overlayOpen) return;
+  if(/^[1-4]$/.test(e.key)&&cardKind){ const b=[...card.querySelectorAll('.opt')][+e.key-1]; if(b&&!b.disabled){ b.click(); e.preventDefault(); } return; }
+  if(e.key===' '||e.key==='Enter'){ if(document.activeElement&&document.activeElement.tagName==='BUTTON'&&e.key==='Enter') return; e.preventDefault(); if(cardKind){ card.querySelector('[data-primary]')?.click(); } else go(); return; }
+  const rot={ArrowLeft:[.12,0],ArrowRight:[-.12,0],ArrowUp:[0,-.08],ArrowDown:[0,.08]}[e.key];
+  if(rot){ e.preventDefault(); follow=false; fly=null; const off=camera.position.clone().sub(controls.target); const sp=new THREE.Spherical().setFromVector3(off); sp.theta+=rot[0]; sp.phi=clamp(sp.phi+rot[1],controls.minPolarAngle,controls.maxPolarAngle); off.setFromSpherical(sp); camera.position.copy(controls.target).add(off); } });
+
+// ---------------- resize & loop
+function resize(){ const w=host.clientWidth||innerWidth, h=host.clientHeight||innerHeight; renderer.setSize(w,h); labelRenderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(host); resize();
+let clockT=0; const _ft=new THREE.Vector3(), _fc=new THREE.Vector3();
+function step(dt){ clockT+=dt; updateTweens(dt);
+  if(!RM){ waterU.uTime.value=clockT; for(const c of clouds){ c.position.x+=c.userData.v*dt; if(c.position.x>95) c.position.x=-95; } }
+  if(fly){ fly.t+=dt; const k=easeIO(Math.min(1,fly.t/fly.dur)); camera.position.lerpVectors(fly.p0,fly.p1,k); controls.target.lerpVectors(fly.t0,fly.t1,k); if(fly.t>=fly.dur) fly=null; }
+  else if(follow&&player){ _ft.copy(player.g.position); if(!isMobile&&cardKind) _ft.x-=1.2; if(isMobile&&cardKind) _ft.z+=1.0; _fc.copy(_ft).add(followOff); const a=1-Math.exp(-dt*4); controls.target.lerp(_ft,a); camera.position.lerp(_fc,a); }
+  if(player&&!busy&&!RM){ const b=Math.sin(clockT*3)*.012; player.inner.position.y=b; player.legL.rotation.x=player.legR.rotation.x=0; player.armL.rotation.z=player.armR.rotation.z=0; }
+  updateWalkers(dt,clockT); updateConf(dt); controls.update(); sky.position.copy(camera.position);
+  const camD=camera.position.distanceTo(controls.target); for(const m of small.meshes) m.visible=camD<26; }
+function render(){ renderer.render(scene,camera); labelRenderer.render(scene,camera); }
+let last=performance.now();
+function frame(now){ requestAnimationFrame(frame); const dt=Math.min(.08,Math.max(0,(now-last)/1000)); last=now; step(dt); render(); }
+
+// ---------------- init
+applyWorld(); applyTime(saved?.finished?1260:G[saved?.isl||0].def.time);
+{ const p=panoPose(); camera.position.copy(p.pos); controls.target.copy(p.target); controls.update(); }
+step(0); render(); requestAnimationFrame(frame);
+$('#loading').classList.add('hidden'); $('#start').classList.remove('hidden');
+if(saved){ $('#nameIn').value=saved.name; S.look=saved.look; document.querySelectorAll('.look').forEach(x=>x.setAttribute('aria-pressed',x.dataset.look===S.look)); }
+if(S.big) document.body.classList.add('big');
+window.__islandReady=true;
+window.__islandSelfTest=()=>({ mode:DATA.mode, islands:G.length, decorIslands:all.length-G.length, items:allTiles.length, questions:allTiles.filter(T=>T.def.q).length, flows:0, walkers:walkers.length,
+  drawCalls:renderer.info.render.calls, triangles:renderer.info.render.triangles, started:S.started, isl:S.isl, slot:S.slot, unlocked:S.unlocked, stars:S.stars, card:cardKind });
+window.__islandDebug={
+  tick(ms=1000){ const n=Math.ceil(ms/16); for(let i=0;i<n;i++) step(1/60); render(); return {isl:S.isl,slot:S.slot,card:cardKind,tweens:tweens.length}; },
+  start(name='測試'){ $('#nameIn').value=name; $('#btnStart').click(); $('#btnHelpOk').click(); return true; },
+  step(){ go(); return true; }, roll(){ go(); return true; },
+  answer(i){ const b=[...card.querySelectorAll('.opt')][i]; if(b&&!b.disabled){ b.click(); return b.textContent; } return null; },
+  correct(){ const T=allTiles.find(x=>card.innerHTML.includes(esc(x.def.q?.q||'§§'))); if(!T) return null; const b=card.querySelector(`[data-act="opt${T.def.q.answer}"]`); b?.click(); return T.def.id; },
+  wrong(){ const T=allTiles.find(x=>card.innerHTML.includes(esc(x.def.q?.q||'§§'))); if(!T) return null; const b=[...card.querySelectorAll('.opt')].find(x=>x.dataset.act!=='opt'+T.def.q.answer&&!x.disabled); b?.click(); return b?.textContent; },
+  next(){ const b=card.querySelector('[data-primary]'); b?.click(); return !!b; },
+  unlockAll(){ S.unlocked=G.length; save(); applyWorld(); return true; },
+  state(){ return JSON.parse(JSON.stringify(S)); }
+};
+}
+</script>
+
+</body>
+</html>
