@@ -8,11 +8,30 @@ const MAX_ISLANDS = 10;   // 島數上限（防亂填）
 const MAX_STARS = 62;     // 星星上限（題目數）
 const TOP_N = 50;
 
+// 綁定在試算表上（擴充功能 → Apps Script）就用那份；
+// 單獨建立的腳本則第一次自動建一份試算表，id 存在指令碼屬性裡。
+function spreadsheet_() {
+  const active = SpreadsheetApp.getActiveSpreadsheet();
+  if (active) return active;
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('SHEET_ID');
+  if (id) return SpreadsheetApp.openById(id);
+  const ss = SpreadsheetApp.create('宋元明清闖關島排行榜');
+  props.setProperty('SHEET_ID', ss.getId());
+  return ss;
+}
+
+// 在編輯器裡執行這個函式，就會在「執行記錄」印出試算表網址
+function showSheetUrl() {
+  Logger.log(spreadsheet_().getUrl());
+}
+
 function sheet_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = spreadsheet_();
   let sh = ss.getSheetByName(SHEET_NAME);
   if (!sh) {
-    sh = ss.insertSheet(SHEET_NAME);
+    const blank = ss.getSheets().length === 1 && ss.getSheets()[0].getLastRow() === 0 ? ss.getSheets()[0] : null;
+    sh = blank ? blank.setName(SHEET_NAME) : ss.insertSheet(SHEET_NAME);
     sh.appendRow(['id', '名字', '過關島數', '星星', '答對率', '全部完成', '更新時間']);
     sh.setFrozenRows(1);
   }
